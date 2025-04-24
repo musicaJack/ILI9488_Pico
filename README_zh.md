@@ -1,5 +1,7 @@
 # ILI9488_Pico
 
+[English](./README.md)
+
 ILI9488 TFT-LCD 显示驱动库和示例，适用于 Raspberry Pi Pico。
 
 ## 项目介绍
@@ -40,6 +42,10 @@ ILI9488 TFT-LCD 显示驱动库和示例，适用于 Raspberry Pi Pico。
 | GPIO 10           | BL (背光)    |
 | 3.3V              | VCC         |
 | GND               | GND         |
+
+硬件连接实物图：
+
+![硬件连接实物图](imgs/hardware1-1.jpg)
 
 ## 文件结构
 

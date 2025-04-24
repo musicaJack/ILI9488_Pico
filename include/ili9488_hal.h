@@ -1,6 +1,6 @@
 /**
  * @file ili9488_hal.h
- * @brief ILI9488 LCD驱动硬件抽象层
+ * @brief Hardware Abstraction Layer for ILI9488 LCD driver
  */
 
 #ifndef _ILI9488_HAL_H_
@@ -14,81 +14,81 @@
 #include "hardware/pwm.h"
 
 /**
- * @brief LCD硬件配置结构体
+ * @brief LCD hardware configuration structure
  */
 typedef struct {
-    spi_inst_t *spi_inst;    // SPI实例
-    uint32_t spi_speed_hz;   // SPI速度(Hz)
+    spi_inst_t *spi_inst;    // SPI instance
+    uint32_t spi_speed_hz;   // SPI speed (Hz)
     
-    // 引脚定义
-    uint8_t pin_din;         // MOSI引脚
-    uint8_t pin_sck;         // SCK引脚
-    uint8_t pin_cs;          // CS引脚
-    uint8_t pin_dc;          // 数据/命令引脚
-    uint8_t pin_reset;       // 复位引脚
-    uint8_t pin_bl;          // 背光引脚
+    // Pin definitions
+    uint8_t pin_din;         // MOSI pin
+    uint8_t pin_sck;         // SCK pin
+    uint8_t pin_cs;          // CS pin
+    uint8_t pin_dc;          // Data/Command pin
+    uint8_t pin_reset;       // Reset pin
+    uint8_t pin_bl;          // Backlight pin
 } ili9488_hw_config_t;
 
 /**
- * @brief 初始化硬件
+ * @brief Initialize hardware
  * 
- * @param config 硬件配置参数
- * @return bool 初始化是否成功
+ * @param config Hardware configuration parameters
+ * @return bool Whether initialization was successful
  */
 bool ili9488_hal_init(const ili9488_hw_config_t *config);
 
 /**
- * @brief 进行硬件复位
+ * @brief Perform hardware reset
  */
 void ili9488_hal_reset(void);
 
 /**
- * @brief 发送命令
+ * @brief Send command
  * 
- * @param cmd 命令字节
+ * @param cmd Command byte
  */
 void ili9488_hal_write_cmd(uint8_t cmd);
 
 /**
- * @brief 发送单个数据字节
+ * @brief Send single data byte
  * 
- * @param data 数据字节
+ * @param data Data byte
  */
 void ili9488_hal_write_data(uint8_t data);
 
 /**
- * @brief 发送多个数据字节
+ * @brief Send multiple data bytes
  * 
- * @param data 数据缓冲区指针
- * @param len 数据长度
+ * @param data Data buffer pointer
+ * @param len Data length
  */
 void ili9488_hal_write_data_buffer(const uint8_t *data, size_t len);
 
 /**
- * @brief 设置背光状态
+ * @brief Set backlight state
  * 
- * @param on 背光状态(true为开,false为关)
+ * @param on Backlight state (true for on, false for off)
  */
 void ili9488_hal_set_backlight(bool on);
 
 /**
- * @brief 设置背光亮度
+ * @brief Set backlight brightness
  * 
- * @param brightness 亮度等级(0-255)，0为关闭，255为最亮
+ * @param brightness Brightness level (0-255), 0 for off, 255 for maximum brightness
  */
 void ili9488_hal_set_backlight_brightness(uint8_t brightness);
 
 /**
- * @brief 延时毫秒
+ * @brief Delay milliseconds
  * 
- * @param ms 毫秒数
+ * @param ms Number of milliseconds
  */
 void ili9488_hal_delay_ms(uint32_t ms);
 
 /**
- * @brief 延时微秒
+ * @brief Delay microseconds
  * 
- * @param us 微秒数
+ * @param us Number of microseconds
  */
 void ili9488_hal_delay_us(uint32_t us);
 

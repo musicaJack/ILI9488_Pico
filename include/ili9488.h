@@ -1,6 +1,6 @@
 /**
  * @file ili9488.h
- * @brief ILI9488 LCD驱动头文件
+ * @brief ILI9488 LCD driver header file
  */
 
 #ifndef _ILI9488_H_
@@ -14,146 +14,146 @@
 #include "ili9488_hal.h"
 
 /**
- * @brief LCD配置结构体
+ * @brief LCD configuration structure
  */
 typedef struct {
-    spi_inst_t *spi_inst;    // SPI实例
-    uint32_t spi_speed_hz;   // SPI速度(Hz)
+    spi_inst_t *spi_inst;    // SPI instance
+    uint32_t spi_speed_hz;   // SPI speed (Hz)
     
-    // 引脚定义
-    uint8_t pin_din;         // MOSI引脚
-    uint8_t pin_sck;         // SCK引脚
-    uint8_t pin_cs;          // CS引脚
-    uint8_t pin_dc;          // 数据/命令引脚
-    uint8_t pin_reset;       // 复位引脚
-    uint8_t pin_bl;          // 背光引脚
+    // Pin definitions
+    uint8_t pin_din;         // MOSI pin
+    uint8_t pin_sck;         // SCK pin
+    uint8_t pin_cs;          // CS pin
+    uint8_t pin_dc;          // Data/Command pin
+    uint8_t pin_reset;       // Reset pin
+    uint8_t pin_bl;          // Backlight pin
     
-    // 屏幕参数
-    uint16_t width;          // 宽度
-    uint16_t height;         // 高度
+    // Screen parameters
+    uint16_t width;          // Width
+    uint16_t height;         // Height
     
-    // 方向
-    uint8_t rotation;        // 旋转方向
+    // Direction
+    uint8_t rotation;        // Rotation direction
 } ili9488_config_t;
 
 /**
- * @brief 颜色定义 (RGB666格式，按厂商标准)
+ * @brief Color definitions (RGB666 format, according to manufacturer standard)
  */
-#define ILI9488_BLACK       0x000000  // 黑色
-#define ILI9488_WHITE       0xFCFCFC  // 白色
-#define ILI9488_RED         0xFC0000  // 红色
-#define ILI9488_GREEN       0x00FC00  // 绿色
-#define ILI9488_BLUE        0x0000FC  // 蓝色
-#define ILI9488_YELLOW      0xFCFC00  // 黄色
-#define ILI9488_CYAN        0x00FCFC  // 青色
-#define ILI9488_MAGENTA     0xFC00FC  // 品红色
+#define ILI9488_BLACK       0x000000  // Black
+#define ILI9488_WHITE       0xFCFCFC  // White
+#define ILI9488_RED         0xFC0000  // Red
+#define ILI9488_GREEN       0x00FC00  // Green
+#define ILI9488_BLUE        0x0000FC  // Blue
+#define ILI9488_YELLOW      0xFCFC00  // Yellow
+#define ILI9488_CYAN        0x00FCFC  // Cyan
+#define ILI9488_MAGENTA     0xFC00FC  // Magenta
 
-/* ILI9488命令定义 */
-#define ILI9488_NOP        0x00     // 空操作
-#define ILI9488_SWRESET    0x01     // 软件复位
-#define ILI9488_RDDID      0x04     // 读显示器ID
-#define ILI9488_SLPIN      0x10     // 进入睡眠模式
-#define ILI9488_SLPOUT     0x11     // 退出睡眠模式
-#define ILI9488_PTLON      0x12     // 部分模式开
-#define ILI9488_NORON      0x13     // 正常显示模式开
-#define ILI9488_INVOFF     0x20     // 关闭显示反转
-#define ILI9488_INVON      0x21     // 打开显示反转
-#define ILI9488_DISPOFF    0x28     // 关闭显示
-#define ILI9488_DISPON     0x29     // 打开显示
-#define ILI9488_CASET      0x2A     // 列地址设置
-#define ILI9488_PASET      0x2B     // 页(行)地址设置
-#define ILI9488_RAMWR      0x2C     // 内存写
-#define ILI9488_RAMRD      0x2E     // 内存读
-#define ILI9488_PTLAR      0x30     // 部分区域
-#define ILI9488_VSCRDEF    0x33     // 垂直滚动定义
-#define ILI9488_MADCTL     0x36     // 内存访问控制
-#define ILI9488_VSCRSADD   0x37     // 垂直滚动起始地址
-#define ILI9488_PIXFMT     0x3A     // 接口像素格式
+/* ILI9488 command definitions */
+#define ILI9488_NOP        0x00     // No operation
+#define ILI9488_SWRESET    0x01     // Software reset
+#define ILI9488_RDDID      0x04     // Read display ID
+#define ILI9488_SLPIN      0x10     // Enter sleep mode
+#define ILI9488_SLPOUT     0x11     // Exit sleep mode
+#define ILI9488_PTLON      0x12     // Partial mode on
+#define ILI9488_NORON      0x13     // Normal display mode on
+#define ILI9488_INVOFF     0x20     // Display inversion off
+#define ILI9488_INVON      0x21     // Display inversion on
+#define ILI9488_DISPOFF    0x28     // Display off
+#define ILI9488_DISPON     0x29     // Display on
+#define ILI9488_CASET      0x2A     // Column address set
+#define ILI9488_PASET      0x2B     // Page (row) address set
+#define ILI9488_RAMWR      0x2C     // Memory write
+#define ILI9488_RAMRD      0x2E     // Memory read
+#define ILI9488_PTLAR      0x30     // Partial area
+#define ILI9488_VSCRDEF    0x33     // Vertical scrolling definition
+#define ILI9488_MADCTL     0x36     // Memory access control
+#define ILI9488_VSCRSADD   0x37     // Vertical scrolling start address
+#define ILI9488_PIXFMT     0x3A     // Interface pixel format
 
-// MADCTL位定义
-#define ILI9488_MADCTL_MY  0x80     // 行地址顺序选择(0=从上到下,1=从下到上)
-#define ILI9488_MADCTL_MX  0x40     // 列地址顺序选择(0=从左到右,1=从右到左)
-#define ILI9488_MADCTL_MV  0x20     // 行列交换(0=正常,1=交换)
-#define ILI9488_MADCTL_ML  0x10     // 垂直更新顺序(0=从上到下,1=从下到上)
-#define ILI9488_MADCTL_BGR 0x08     // BGR/RGB顺序(0=RGB,1=BGR)
-#define ILI9488_MADCTL_MH  0x04     // 水平更新顺序(0=从左到右,1=从右到左)
+// MADCTL bit definitions
+#define ILI9488_MADCTL_MY  0x80     // Row address order selection (0=top to bottom, 1=bottom to top)
+#define ILI9488_MADCTL_MX  0x40     // Column address order selection (0=left to right, 1=right to left)
+#define ILI9488_MADCTL_MV  0x20     // Row/column exchange (0=normal, 1=exchanged)
+#define ILI9488_MADCTL_ML  0x10     // Vertical refresh order (0=top to bottom, 1=bottom to top)
+#define ILI9488_MADCTL_BGR 0x08     // BGR/RGB order (0=RGB, 1=BGR)
+#define ILI9488_MADCTL_MH  0x04     // Horizontal refresh order (0=left to right, 1=right to left)
 
 /**
- * @brief 初始化ILI9488驱动
+ * @brief Initialize ILI9488 driver
  * 
- * @param config LCD配置参数
- * @return bool 初始化是否成功
+ * @param config LCD configuration parameters
+ * @return bool Whether initialization was successful
  */
 bool ili9488_init(const ili9488_config_t *config);
 
 /**
- * @brief 设置LCD背光
+ * @brief Set LCD backlight
  * 
- * @param on 背光状态(true为开,false为关)
+ * @param on Backlight state (true for on, false for off)
  */
 void ili9488_set_backlight(bool on);
 
 /**
- * @brief 设置LCD背光亮度
+ * @brief Set LCD backlight brightness
  * 
- * @param brightness 亮度等级(0-255)，0为关闭，255为最亮
+ * @param brightness Brightness level (0-255), 0 for off, 255 for maximum brightness
  */
 void ili9488_set_backlight_brightness(uint8_t brightness);
 
 /**
- * @brief 用指定颜色填充整个屏幕
+ * @brief Fill the entire screen with specified color
  * 
- * @param color 填充颜色(RGB565格式)
+ * @param color Fill color (RGB565 format)
  */
 void ili9488_fill_screen(uint16_t color);
 
 /**
- * @brief 设置绘图窗口
+ * @brief Set drawing window
  * 
- * @param x0 起始X坐标
- * @param y0 起始Y坐标
- * @param x1 结束X坐标
- * @param y1 结束Y坐标
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
  */
 void ili9488_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 
 /**
- * @brief 绘制单个像素
+ * @brief Draw a single pixel
  * 
- * @param x X坐标
- * @param y Y坐标
- * @param color 像素颜色
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @param color Pixel color
  */
 void ili9488_draw_pixel(uint16_t x, uint16_t y, uint16_t color);
 
 /**
- * @brief 绘制单个像素（24位RGB格式）
+ * @brief Draw a single pixel (24-bit RGB format)
  * 
- * @param x X坐标
- * @param y Y坐标
- * @param color24 24位RGB颜色
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @param color24 24-bit RGB color
  */
 void ili9488_draw_pixel_rgb24(uint16_t x, uint16_t y, uint32_t color24);
 
 /**
- * @brief 向LCD发送数据块
+ * @brief Send data block to LCD
  * 
- * @param data 数据指针
- * @param len 数据长度
+ * @param data Data pointer
+ * @param len Data length
  */
 void ili9488_write_data_buffer(const uint8_t *data, size_t len);
 
 /**
- * @brief 设置显示方向
+ * @brief Set display orientation
  * 
- * @param rotation 旋转值(0-3)
+ * @param rotation Rotation value (0-3)
  */
 void ili9488_set_rotation(uint8_t rotation);
 
 /**
- * @brief 填充屏幕为单一颜色（24位RGB格式）
+ * @brief Fill screen with a single color (24-bit RGB format)
  * 
- * @param color24 24位RGB颜色
+ * @param color24 24-bit RGB color
  */
 void ili9488_fill_screen_rgb24(uint32_t color24);
 

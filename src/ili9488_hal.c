@@ -1,6 +1,6 @@
 /**
  * @file ili9488_hal.c
- * @brief ILI9488 LCD驱动硬件抽象层实现
+ * @brief Hardware Abstraction Layer implementation for ILI9488 LCD driver
  */
 
 #include <stdio.h>
@@ -9,12 +9,12 @@
 #include "hardware/pwm.h"
 #include "ili9488_hal.h"
 
-// 硬件配置
+// Hardware configuration
 static struct {
     bool is_initialized;
     spi_inst_t *spi;
     
-    // 引脚
+    // Pins
     uint8_t pin_din;
     uint8_t pin_sck;
     uint8_t pin_cs;
@@ -22,10 +22,10 @@ static struct {
     uint8_t pin_reset;
     uint8_t pin_bl;
     
-    // PWM相关
-    uint slice_num;         // 背光PWM的slice编号
-    uint channel;           // 背光PWM的通道
-    bool pwm_enabled;       // PWM是否已启用
+    // PWM related
+    uint slice_num;         // Slice number for backlight PWM
+    uint channel;           // Channel for backlight PWM
+    bool pwm_enabled;       // Whether PWM is enabled
 } hw_config = {0};
 
 bool ili9488_hal_init(const ili9488_hw_config_t *config) {
@@ -34,7 +34,7 @@ bool ili9488_hal_init(const ili9488_hw_config_t *config) {
         return false;
     }
     
-    // 保存配置
+    // Save configuration
     hw_config.spi = config->spi_inst;
     hw_config.pin_din = config->pin_din;
     hw_config.pin_sck = config->pin_sck;
@@ -45,51 +45,51 @@ bool ili9488_hal_init(const ili9488_hw_config_t *config) {
     
     printf("Initializing ILI9488 hardware...\n");
     
-    // 初始化GPIO引脚
+    // Initialize GPIO pins
     gpio_init(hw_config.pin_dc);
     gpio_init(hw_config.pin_cs);
     gpio_init(hw_config.pin_reset);
     gpio_init(hw_config.pin_bl);
     
-    // 设置GPIO方向
+    // Set GPIO direction
     gpio_set_dir(hw_config.pin_dc, GPIO_OUT);
     gpio_set_dir(hw_config.pin_cs, GPIO_OUT);
     gpio_set_dir(hw_config.pin_reset, GPIO_OUT);
     gpio_set_dir(hw_config.pin_bl, GPIO_OUT);
     
-    // 设置初始状态
-    gpio_put(hw_config.pin_cs, 1);     // 默认不选中
-    gpio_put(hw_config.pin_dc, 1);     // 默认数据模式
-    gpio_put(hw_config.pin_reset, 1);  // 默认不复位
-    gpio_put(hw_config.pin_bl, 0);     // 默认背光关闭
+    // Set initial state
+    gpio_put(hw_config.pin_cs, 1);     // Default not selected
+    gpio_put(hw_config.pin_dc, 1);     // Default data mode
+    gpio_put(hw_config.pin_reset, 1);  // Default not reset
+    gpio_put(hw_config.pin_bl, 0);     // Default backlight off
     
-    // 初始化SPI
+    // Initialize SPI
     spi_init(hw_config.spi, config->spi_speed_hz);
     
-    // 设置SPI格式 - 8位，模式0，MSB优先
+    // Set SPI format - 8-bit, mode 0, MSB first
     spi_set_format(hw_config.spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
     
-    // 设置SPI引脚
+    // Set SPI pins
     gpio_set_function(hw_config.pin_sck, GPIO_FUNC_SPI);
     gpio_set_function(hw_config.pin_din, GPIO_FUNC_SPI);
     
-    // 初始化PWM背光控制
-    // 获取背光引脚对应的PWM slice和通道
+    // Initialize PWM backlight control
+    // Get PWM slice and channel for backlight pin
     hw_config.slice_num = pwm_gpio_to_slice_num(hw_config.pin_bl);
     hw_config.channel = pwm_gpio_to_channel(hw_config.pin_bl);
     
-    // 配置GPIO为PWM功能
+    // Configure GPIO as PWM function
     gpio_set_function(hw_config.pin_bl, GPIO_FUNC_PWM);
     
-    // 配置PWM 
-    // 使用125MHz / 65535 ≈ 1.9kHz的PWM频率
+    // Configure PWM 
+    // Use 125MHz / 65535 ≈ 1.9kHz PWM frequency
     pwm_set_wrap(hw_config.slice_num, 65535);
-    pwm_set_chan_level(hw_config.slice_num, hw_config.channel, 0);  // 初始化为0（关闭）
+    pwm_set_chan_level(hw_config.slice_num, hw_config.channel, 0);  // Initialize to 0 (off)
     pwm_set_enabled(hw_config.slice_num, true);
     
     hw_config.pwm_enabled = true;
     
-    // 执行硬件复位
+    // Perform hardware reset
     ili9488_hal_reset();
     
     hw_config.is_initialized = true;
@@ -105,7 +105,7 @@ void ili9488_hal_reset(void) {
     
     printf("Performing hardware reset...\n");
     
-    // 硬件复位序列
+    // Hardware reset sequence
     gpio_put(hw_config.pin_reset, 1);
     ili9488_hal_delay_ms(10);
     gpio_put(hw_config.pin_reset, 0);
@@ -119,10 +119,10 @@ void ili9488_hal_write_cmd(uint8_t cmd) {
         return;
     }
     
-    gpio_put(hw_config.pin_cs, 0);  // 选中芯片
-    gpio_put(hw_config.pin_dc, 0);  // 命令模式
+    gpio_put(hw_config.pin_cs, 0);  // Select chip
+    gpio_put(hw_config.pin_dc, 0);  // Command mode
     spi_write_blocking(hw_config.spi, &cmd, 1);
-    gpio_put(hw_config.pin_cs, 1);  // 取消选中
+    gpio_put(hw_config.pin_cs, 1);  // Deselect chip
 }
 
 void ili9488_hal_write_data(uint8_t data) {
@@ -130,10 +130,10 @@ void ili9488_hal_write_data(uint8_t data) {
         return;
     }
     
-    gpio_put(hw_config.pin_cs, 0);  // 选中芯片
-    gpio_put(hw_config.pin_dc, 1);  // 数据模式
+    gpio_put(hw_config.pin_cs, 0);  // Select chip
+    gpio_put(hw_config.pin_dc, 1);  // Data mode
     spi_write_blocking(hw_config.spi, &data, 1);
-    gpio_put(hw_config.pin_cs, 1);  // 取消选中
+    gpio_put(hw_config.pin_cs, 1);  // Deselect chip
 }
 
 void ili9488_hal_write_data_buffer(const uint8_t *data, size_t len) {
@@ -141,10 +141,10 @@ void ili9488_hal_write_data_buffer(const uint8_t *data, size_t len) {
         return;
     }
     
-    gpio_put(hw_config.pin_cs, 0);  // 选中芯片
-    gpio_put(hw_config.pin_dc, 1);  // 数据模式
+    gpio_put(hw_config.pin_cs, 0);  // Select chip
+    gpio_put(hw_config.pin_dc, 1);  // Data mode
     spi_write_blocking(hw_config.spi, data, len);
-    gpio_put(hw_config.pin_cs, 1);  // 取消选中
+    gpio_put(hw_config.pin_cs, 1);  // Deselect chip
 }
 
 void ili9488_hal_set_backlight(bool on) {
@@ -153,10 +153,10 @@ void ili9488_hal_set_backlight(bool on) {
     }
     
     if (hw_config.pwm_enabled) {
-        // 如果PWM已启用，设置为最大亮度或关闭
+        // If PWM is enabled, set to maximum brightness or off
         pwm_set_chan_level(hw_config.slice_num, hw_config.channel, on ? 65535 : 0);
     } else {
-        // 否则使用GPIO控制
+        // Otherwise use GPIO control
         gpio_put(hw_config.pin_bl, on ? 1 : 0);
     }
 }
@@ -167,11 +167,11 @@ void ili9488_hal_set_backlight_brightness(uint8_t brightness) {
     }
     
     if (hw_config.pwm_enabled) {
-        // 将8位亮度值(0-255)映射到16位PWM范围(0-65535)
+        // Map 8-bit brightness value (0-255) to 16-bit PWM range (0-65535)
         uint16_t level = (uint32_t)brightness * 65535 / 255;
         pwm_set_chan_level(hw_config.slice_num, hw_config.channel, level);
     } else {
-        // 如果PWM未启用，则任何非零亮度值都将开启背光
+        // If PWM is not enabled, any non-zero brightness will turn on the backlight
         gpio_put(hw_config.pin_bl, brightness > 0 ? 1 : 0);
     }
 }
