@@ -1,0 +1,26 @@
+# 构建目录
+/build/
+/out/
+
+# 编译输出
+*.o
+*.obj
+*.elf
+*.map
+*.bin
+*.dis
+*.hex
+*.uf2
+
+# 编辑器临时文件
+.vscode/
+.vs/
+*.swp
+*~
+.DS_Store
+
+# Pico SDK (如果已子模块化，不需要包含此项)
+# pico-sdk/
+
+# 依赖库缓存
+_deps/ 
