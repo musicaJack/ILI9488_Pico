@@ -1,22 +1,29 @@
 @echo off
-echo  start build...
+setlocal enabledelayedexpansion
+REM Build ILI9488 Pico example programs
 
-if exist build (
-    echo  clean old build files...
-    rd /s /q build
-)
+echo Creating build directory...
+if not exist build mkdir build
 
-mkdir build
+echo Entering build directory...
 cd build
-cmake .. -G "MinGW Makefiles"
-mingw32-make -j4
 
-if %ERRORLEVEL% NEQ 0 (
-  echo  build failed!
-  pause
-  exit /b %ERRORLEVEL%
+echo Running CMake...
+cmake -G "MinGW Makefiles" ..
+
+echo Starting compilation...
+mingw32-make
+
+echo Compilation complete!
+
+echo Generated files:
+echo ------------------------------
+for %%f in (*.uf2) do (
+    echo - %%f
 )
+echo ------------------------------
 
-echo  build success!
-echo UF2 file has been generated in the build directory
 cd ..
+
+echo Build process completed.
+pause

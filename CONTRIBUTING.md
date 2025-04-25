@@ -1,67 +1,67 @@
-# 贡献指南
+# Contributing Guide
 
-感谢您对本项目的关注！我们欢迎任何形式的贡献，无论是功能请求、bug报告还是代码贡献。
+Thank you for your interest in this project! We welcome any form of contribution, whether it's feature requests, bug reports, or code contributions.
 
-## 如何贡献
+## How to Contribute
 
-### 报告Bug
+### Reporting Bugs
 
-如果您发现了一个bug，请创建一个issue，并包含以下信息：
+If you find a bug, please create an issue with the following information:
 
-1. 简短描述bug
-2. 复现步骤
-3. 预期行为
-4. 实际行为
-5. 环境信息（操作系统、硬件型号等）
-6. 如果可能，添加截图或日志
+1. A brief description of the bug
+2. Steps to reproduce
+3. Expected behavior
+4. Actual behavior
+5. Environment information (operating system, hardware model, etc.)
+6. Screenshots or logs if possible
 
-### 提出新功能
+### Suggesting New Features
 
-如果您有新功能的建议，请创建一个issue并描述：
+If you have a suggestion for a new feature, please create an issue describing:
 
-1. 您想要的功能
-2. 为什么这个功能对项目有价值
-3. 如何实现（如果您有想法）
+1. The feature you want
+2. Why this feature would be valuable to the project
+3. How it might be implemented (if you have ideas)
 
-### 提交代码
+### Submitting Code
 
-1. Fork本项目
-2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建一个Pull Request
+1. Fork this project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Create a Pull Request
 
-## 开发指南
+## Development Guidelines
 
-### 代码风格
+### Code Style
 
-- 使用4空格缩进
-- 函数和变量使用小写字母加下划线命名法
-- 注释应当清晰解释代码的目的而不是具体实现
+- Use 4 spaces for indentation
+- Use snake_case for function and variable names
+- Comments should clearly explain the purpose of the code rather than the implementation
 
-### 提交信息规范
+### Commit Message Standards
 
-提交信息应当简明扼要地描述更改的内容，例如：
+Commit messages should concisely describe the changes, for example:
 
 ```
-修复: LCD初始化序列中的时序问题
-功能: 添加屏幕旋转支持
-改进: 优化SPI传输性能
-文档: 更新接线说明
+Fix: Timing issues in LCD initialization sequence
+Feature: Add screen rotation support
+Improvement: Optimize SPI transfer performance
+Documentation: Update wiring instructions
 ```
 
-## 开发设置
+## Development Setup
 
-请参考README.md中的"开发环境设置"部分，确保您有正确的开发环境。
+Please refer to the "Development Environment Setup" section in README.md to ensure you have the correct development environment.
 
-## 测试
+## Testing
 
-在提交代码前，请确保：
+Before submitting code, please ensure:
 
-1. 代码能够正常编译
-2. 在实际硬件上测试过功能
-3. 不会引入新的编译警告
+1. The code compiles without errors
+2. You've tested the functionality on actual hardware
+3. No new compiler warnings are introduced
 
-## 许可证
+## License
 
-通过贡献代码，您同意您的贡献将使用项目的MIT许可证。 
+By contributing code, you agree that your contributions will be licensed under the project's MIT license. 

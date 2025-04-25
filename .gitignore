@@ -1,8 +1,8 @@
-# 构建目录
+# build directory
 /build/
 /out/
 
-# 编译输出
+# compile output
 *.o
 *.obj
 *.elf
@@ -12,15 +12,15 @@
 *.hex
 *.uf2
 
-# 编辑器临时文件
+# editor temporary files
 .vscode/
 .vs/
 *.swp
 *~
 .DS_Store
 
-# Pico SDK (如果已子模块化，不需要包含此项)
+# Pico SDK (if submodule, no need to include this)
 # pico-sdk/
 
-# 依赖库缓存
+# dependency library cache
 _deps/ 

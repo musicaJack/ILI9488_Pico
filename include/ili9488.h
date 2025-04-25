@@ -157,4 +157,96 @@ void ili9488_set_rotation(uint8_t rotation);
  */
 void ili9488_fill_screen_rgb24(uint32_t color24);
 
+/**
+ * @brief Convert RGB565 color to RGB666 format (18-bit)
+ * 
+ * @param color RGB565 color
+ * @param r Output red component (6-bit)
+ * @param g Output green component (6-bit)
+ * @param b Output blue component (6-bit)
+ */
+void rgb565_to_rgb666(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b);
+
+/**
+ * @brief Convert 24-bit RGB color to RGB666 format (18-bit)
+ * 
+ * @param color 24-bit RGB color
+ * @param r Output red component (6-bit)
+ * @param g Output green component (6-bit)
+ * @param b Output blue component (6-bit)
+ */
+void rgb24_to_rgb666(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b);
+
+/**
+ * @brief Bulk write RGB565 pixel data (efficient area filling)
+ * 
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ * @param colors RGB565 color array
+ * @param len Length of color array
+ */
+void ili9488_write_pixels(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint16_t *colors, size_t len);
+
+/**
+ * @brief Bulk write RGB888 pixel data (efficient area filling)
+ * 
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ * @param colors 24-bit RGB color array
+ * @param len Length of color array
+ */
+void ili9488_write_pixels_rgb24(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint32_t *colors, size_t len);
+
+/**
+ * @brief Fast fill rectangular area with a single color
+ * 
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ * @param color RGB565 color
+ */
+void ili9488_fill_area(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
+
+/**
+ * @brief Fast fill rectangular area with a single 24-bit RGB color
+ * 
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ * @param color24 24-bit RGB color
+ */
+void ili9488_fill_area_rgb24(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color24);
+
+/**
+ * @brief Activate partial refresh mode
+ * 
+ * @param enable Whether to enable partial refresh mode
+ */
+void ili9488_partial_mode(bool enable);
+
+/**
+ * @brief Set partial refresh area
+ * 
+ * @param x0 Starting X coordinate
+ * @param y0 Starting Y coordinate
+ * @param x1 Ending X coordinate
+ * @param y1 Ending Y coordinate
+ */
+void ili9488_set_partial_area(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+
+/**
+ * @brief Send data to LCD using DMA
+ * 
+ * @param data Data pointer
+ * @param len Data length
+ * @return bool Whether transfer started successfully
+ */
+bool ili9488_write_data_dma(const uint8_t *data, size_t len);
+
 #endif /* _ILI9488_H_ */ 

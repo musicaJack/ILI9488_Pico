@@ -1,45 +1,23 @@
 /**
  * @file ili9488_gfx.c
- * @brief ILI9488 LCD 图形函数库实现
+ * @brief ILI9488 LCD graphics function library implementation
  */
 
 #include <stdlib.h>
 #include "ili9488_gfx.h"
 #include "ili9488.h"
 
-// 将RGB565颜色转换为RGB666格式（18位）- 在这里声明
-static void rgb565_to_rgb666(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
-    // 从RGB565中提取分量
-    *r = (color >> 11) & 0x1F;  // 5位红色
-    *g = (color >> 5) & 0x3F;   // 6位绿色
-    *b = color & 0x1F;          // 5位蓝色
-    
-    // 扩展到RGB666格式（每个颜色分量占用6位）
-    *r = (*r << 1) | (*r >> 4); // 将5位红色扩展到6位
-    // 绿色已经是6位，不需要扩展
-    *b = (*b << 1) | (*b >> 4); // 将5位蓝色扩展到6位
-}
+// Note: rgb565_to_rgb666 and rgb24_to_rgb666 functions are now implemented in ili9488.c
+// and declared in ili9488.h
 
-// 从24位RGB颜色提取RGB分量并转换为RGB666格式
-static void rgb24_to_rgb666(uint32_t color24, uint8_t *r, uint8_t *g, uint8_t *b) {
-    *r = (color24 >> 16) & 0xFF;  // 提取R分量（高8位）
-    *g = (color24 >> 8) & 0xFF;   // 提取G分量（中8位）
-    *b = color24 & 0xFF;          // 提取B分量（低8位）
-    
-    // 将8位分量转换为6位分量
-    *r = *r >> 2;  // 8位到6位
-    *g = *g >> 2;  // 8位到6位
-    *b = *b >> 2;  // 8位到6位
-}
-
-// 填充圆形辅助函数的声明
+// Declaration of circle filling helper function
 static void ili9488_fill_circle_helper(uint16_t x0, uint16_t y0, uint16_t r, uint8_t corners, uint16_t delta, uint16_t color);
 
-// 绘制水平线
+// Draw horizontal line
 void ili9488_draw_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     if (w <= 0) return;
     
-    // 快速水平线绘制，设置窗口然后批量传输相同的颜色数据
+    // Fast horizontal line drawing, set window then batch transfer the same color data
     ili9488_set_window(x, y, x + w - 1, y);
     
     uint8_t r, g, b;
@@ -51,11 +29,11 @@ void ili9488_draw_hline(uint16_t x, uint16_t y, uint16_t w, uint16_t color) {
     }
 }
 
-// 绘制垂直线
+// Draw vertical line
 void ili9488_draw_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     if (h <= 0) return;
     
-    // 快速垂直线绘制，设置窗口然后批量传输相同的颜色数据
+    // Fast vertical line drawing, set window then batch transfer the same color data
     ili9488_set_window(x, y, x, y + h - 1);
     
     uint8_t r, g, b;
@@ -67,11 +45,11 @@ void ili9488_draw_vline(uint16_t x, uint16_t y, uint16_t h, uint16_t color) {
     }
 }
 
-// 绘制水平线（24位RGB颜色）
+// Draw horizontal line (24-bit RGB color)
 void ili9488_draw_hline_rgb24(uint16_t x, uint16_t y, uint16_t w, uint32_t color24) {
     if (w <= 0) return;
     
-    // 快速水平线绘制，设置窗口然后批量传输相同的颜色数据
+    // Fast horizontal line drawing, set window then batch transfer the same color data
     ili9488_set_window(x, y, x + w - 1, y);
     
     uint8_t r, g, b;
@@ -83,11 +61,11 @@ void ili9488_draw_hline_rgb24(uint16_t x, uint16_t y, uint16_t w, uint32_t color
     }
 }
 
-// 绘制垂直线（24位RGB颜色）
+// Draw vertical line (24-bit RGB color)
 void ili9488_draw_vline_rgb24(uint16_t x, uint16_t y, uint16_t h, uint32_t color24) {
     if (h <= 0) return;
     
-    // 快速垂直线绘制，设置窗口然后批量传输相同的颜色数据
+    // Fast vertical line drawing, set window then batch transfer the same color data
     ili9488_set_window(x, y, x, y + h - 1);
     
     uint8_t r, g, b;
@@ -99,9 +77,9 @@ void ili9488_draw_vline_rgb24(uint16_t x, uint16_t y, uint16_t h, uint32_t color
     }
 }
 
-// 绘制任意线段（Bresenham算法）
+// Draw arbitrary line (Bresenham algorithm)
 void ili9488_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color) {
-    // 检查特殊情况（水平线和垂直线）提高效率
+    // Check special cases (horizontal and vertical lines) for efficiency
     if (y0 == y1) {
         if (x0 > x1) {
             uint16_t temp = x0;
@@ -122,10 +100,10 @@ void ili9488_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint1
         return;
     }
     
-    // 使用Bresenham算法绘制斜线
+    // Use Bresenham algorithm to draw sloped lines
     int16_t steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
-        // 如果线段更陡峭，交换x和y坐标
+        // If the line is steeper, swap x and y coordinates
         uint16_t temp = x0;
         x0 = y0;
         y0 = temp;
@@ -136,7 +114,7 @@ void ili9488_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint1
     }
     
     if (x0 > x1) {
-        // 确保总是从左向右绘制
+        // Ensure always drawing from left to right
         uint16_t temp = x0;
         x0 = x1;
         x1 = temp;
@@ -171,52 +149,52 @@ void ili9488_draw_line(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint1
     }
 }
 
-// 绘制矩形
+// Draw rectangle
 void ili9488_draw_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
-    // 绘制四条边
-    ili9488_draw_hline(x, y, w, color);          // 上边
-    ili9488_draw_hline(x, y + h - 1, w, color);  // 下边
-    ili9488_draw_vline(x, y, h, color);          // 左边
-    ili9488_draw_vline(x + w - 1, y, h, color);  // 右边
+    // Draw four edges
+    ili9488_draw_hline(x, y, w, color);          // Top edge
+    ili9488_draw_hline(x, y + h - 1, w, color);  // Bottom edge
+    ili9488_draw_vline(x, y, h, color);          // Left edge
+    ili9488_draw_vline(x + w - 1, y, h, color);  // Right edge
 }
 
-// 绘制填充矩形
+// Draw filled rectangle
 void ili9488_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
-    // 设置窗口
+    // Set window
     ili9488_set_window(x, y, x + w - 1, y + h - 1);
     
-    // 准备颜色数据
+    // Prepare color data
     uint8_t r, g, b;
     rgb565_to_rgb666(color, &r, &g, &b);
     
     uint8_t data[3] = {r, g, b};
     uint32_t total_pixels = (uint32_t)w * h;
     
-    // 填充矩形
+    // Fill rectangle
     for (uint32_t i = 0; i < total_pixels; i++) {
         ili9488_write_data_buffer(data, 3);
     }
 }
 
-// 绘制填充矩形（24位RGB颜色）
+// Draw filled rectangle (24-bit RGB color)
 void ili9488_fill_rect_rgb24(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t color24) {
-    // 设置窗口
+    // Set window
     ili9488_set_window(x, y, x + w - 1, y + h - 1);
     
-    // 准备颜色数据
+    // Prepare color data
     uint8_t r, g, b;
     rgb24_to_rgb666(color24, &r, &g, &b);
     
     uint8_t data[3] = {r, g, b};
     uint32_t total_pixels = (uint32_t)w * h;
     
-    // 填充矩形
+    // Fill rectangle
     for (uint32_t i = 0; i < total_pixels; i++) {
         ili9488_write_data_buffer(data, 3);
     }
 }
 
-// 绘制圆形
+// Draw circle
 void ili9488_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     int16_t f = 1 - r;
     int16_t ddF_x = 1;
@@ -224,7 +202,7 @@ void ili9488_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     int16_t x = 0;
     int16_t y = r;
     
-    // 绘制八个方向的点
+    // Draw points in eight directions
     ili9488_draw_pixel(x0, y0 + r, color);
     ili9488_draw_pixel(x0, y0 - r, color);
     ili9488_draw_pixel(x0 + r, y0, color);
@@ -251,14 +229,14 @@ void ili9488_draw_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
     }
 }
 
-// 绘制填充圆形
+// Draw filled circle
 void ili9488_fill_circle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color) {
-    // 绘制垂直线从圆心向上下方向填充
+    // Draw vertical line from center in up and down directions
     ili9488_draw_vline(x0, y0 - r, 2 * r + 1, color);
     ili9488_fill_circle_helper(x0, y0, r, 3, 0, color);
 }
 
-// 填充圆形辅助函数
+// Circle filling helper function
 static void ili9488_fill_circle_helper(uint16_t x0, uint16_t y0, uint16_t r, uint8_t corners, uint16_t delta, uint16_t color) {
     int16_t f = 1 - r;
     int16_t ddF_x = 1;
@@ -268,7 +246,7 @@ static void ili9488_fill_circle_helper(uint16_t x0, uint16_t y0, uint16_t r, uin
     int16_t px = x;
     int16_t py = y;
     
-    delta++; // 避免一些舍入误差
+    delta++; // Avoid some rounding errors
     
     while (x < y) {
         if (f >= 0) {
@@ -280,7 +258,7 @@ static void ili9488_fill_circle_helper(uint16_t x0, uint16_t y0, uint16_t r, uin
         ddF_x += 2;
         f += ddF_x;
         
-        // 这些检查避免在四分之一圆环节绘制多余的像素
+        // These checks avoid drawing extra pixels in quarter circle sections
         if (x < (y + 1)) {
             if (corners & 1) ili9488_draw_hline(x0 + x, y0 - y, 2 * y + 1 - delta, color);
             if (corners & 2) ili9488_draw_hline(x0 - x, y0 - y, 2 * y + 1 - delta, color);
@@ -294,26 +272,26 @@ static void ili9488_fill_circle_helper(uint16_t x0, uint16_t y0, uint16_t r, uin
     }
 }
 
-// 辅助方法声明
+// Helper method declaration
 static void swap(uint16_t *a, uint16_t *b) {
     uint16_t t = *a;
     *a = *b;
     *b = t;
 }
 
-// 绘制三角形
+// Draw triangle
 void ili9488_draw_triangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color) {
-    // 绘制三条边
+    // Draw three edges
     ili9488_draw_line(x0, y0, x1, y1, color);
     ili9488_draw_line(x1, y1, x2, y2, color);
     ili9488_draw_line(x2, y2, x0, y0, color);
 }
 
-// 绘制填充三角形
+// Draw filled triangle
 void ili9488_fill_triangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color) {
     int16_t a, b, y, last;
     
-    // 按y坐标排序点
+    // Sort points by y coordinate
     if (y0 > y1) {
         swap(&y0, &y1);
         swap(&x0, &x1);
@@ -327,7 +305,7 @@ void ili9488_fill_triangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, u
         swap(&x0, &x1);
     }
     
-    // 如果全部点在同一水平线上
+    // If all points are on the same horizontal line
     if (y0 == y2) {
         a = b = x0;
         if (x1 < a) a = x1;
@@ -338,12 +316,12 @@ void ili9488_fill_triangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, u
         return;
     }
     
-    // 为了处理填充三角形的各种情况，计算斜率
+    // To handle various cases of filling triangles, calculate slopes
     int16_t dx01 = x1 - x0, dy01 = y1 - y0, dx02 = x2 - x0, dy02 = y2 - y0,
     dx12 = x2 - x1, dy12 = y2 - y1;
     int32_t sa = 0, sb = 0;
     
-    // 对于上半部分三角形
+    // For the upper half of the triangle
     if (y1 == y2) last = y1;
     else last = y1 - 1;
     
@@ -356,7 +334,7 @@ void ili9488_fill_triangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, u
         ili9488_draw_hline(a, y, b - a + 1, color);
     }
     
-    // 对于下半部分三角形
+    // For the lower half of the triangle
     sa = dx12 * (y - y1);
     sb = dx02 * (y - y0);
     for (; y <= y2; y++) {

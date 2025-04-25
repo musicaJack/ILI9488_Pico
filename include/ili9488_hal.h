@@ -12,6 +12,7 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
+#include "hardware/dma.h"
 
 /**
  * @brief LCD hardware configuration structure
@@ -27,6 +28,9 @@ typedef struct {
     uint8_t pin_dc;          // Data/Command pin
     uint8_t pin_reset;       // Reset pin
     uint8_t pin_bl;          // Backlight pin
+    
+    // DMA configuration
+    bool use_dma;            // Whether to use DMA transfer
 } ili9488_hw_config_t;
 
 /**
@@ -41,6 +45,13 @@ bool ili9488_hal_init(const ili9488_hw_config_t *config);
  * @brief Perform hardware reset
  */
 void ili9488_hal_reset(void);
+
+/**
+ * @brief Set data/command pin level
+ * 
+ * @param level Pin level (true for data, false for command)
+ */
+void ili9488_hal_dc(bool level);
 
 /**
  * @brief Send command
@@ -63,6 +74,27 @@ void ili9488_hal_write_data(uint8_t data);
  * @param len Data length
  */
 void ili9488_hal_write_data_buffer(const uint8_t *data, size_t len);
+
+/**
+ * @brief Send data buffer using DMA (asynchronous, non-blocking CPU)
+ * 
+ * @param data Data pointer
+ * @param len Data length
+ * @return bool Whether transfer started successfully
+ */
+bool ili9488_hal_write_data_dma(const uint8_t *data, size_t len);
+
+/**
+ * @brief Check if DMA transfer is complete
+ * 
+ * @return bool Whether transfer is complete
+ */
+bool ili9488_hal_is_dma_busy(void);
+
+/**
+ * @brief Wait for DMA transfer to complete
+ */
+void ili9488_hal_wait_dma_idle(void);
 
 /**
  * @brief Set backlight state

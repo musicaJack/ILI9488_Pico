@@ -1,6 +1,6 @@
 /**
  * @file ili9488_font.c
- * @brief ILI9488 LCD 字体和文本绘制函数实现
+ * @brief Implementation of ILI9488 LCD font and text drawing functions
  */
 
 #include <stdio.h>
@@ -8,23 +8,10 @@
 #include "ili9488_gfx.h"
 #include "ili9488.h"
 
-// 将RGB565颜色转换为RGB666格式（18位）
-static void rgb565_to_rgb666(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
-    // 从RGB565中提取分量
-    *r = (color >> 11) & 0x1F;  // 5位红色
-    *g = (color >> 5) & 0x3F;   // 6位绿色
-    *b = color & 0x1F;          // 5位蓝色
-    
-    // 扩展到RGB666格式（每个颜色分量占用6位）
-    *r = (*r << 1) | (*r >> 4); // 将5位红色扩展到6位
-    // 绿色已经是6位，不需要扩展
-    *b = (*b << 1) | (*b >> 4); // 将5位蓝色扩展到6位
-}
-
-// 基本ASCII 5x7字体
-// 每个字符占用5列，实际显示为5x7点阵
+// Basic ASCII 5x7 font
+// Each character occupies 5 columns, displayed as 5x7 dot matrix
 static const unsigned char font5x7[] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, // 空格
+    0x00, 0x00, 0x00, 0x00, 0x00, // Space
     0x00, 0x00, 0x5F, 0x00, 0x00, // !
     0x00, 0x07, 0x00, 0x07, 0x00, // "
     0x14, 0x7F, 0x14, 0x7F, 0x14, // #
@@ -122,24 +109,24 @@ static const unsigned char font5x7[] = {
     0x08, 0x1C, 0x2A, 0x08, 0x08  // <-
 };
 
-// 绘制单个字符
+// Draw a single character
 void ili9488_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size) {
-    if ((x >= 320) || // 超出屏幕宽度
-        (y >= 480) || // 超出屏幕高度
-        ((x + 5 * size - 1) < 0) || // 超出左边界
-        ((y + 7 * size - 1) < 0)) { // 超出上边界
+    if ((x >= 320) || // Exceeds screen width
+        (y >= 480) || // Exceeds screen height
+        ((x + 5 * size - 1) < 0) || // Outside left boundary
+        ((y + 7 * size - 1) < 0)) { // Outside top boundary
         return;
     }
     
-    // ASCII字符范围检查
+    // ASCII character range check
     if (c < 32 || c > 127) {
-        c = '?'; // 对于不支持的字符显示问号
+        c = '?'; // Display question mark for unsupported characters
     }
     
-    // 字符索引
+    // Character index
     c -= 32;
     
-    // 设置绘图窗口
+    // Set drawing window
     for (uint8_t i = 0; i < 5; i++) {
         uint8_t line = font5x7[c * 5 + i];
         for (uint8_t j = 0; j < 7; j++) {
@@ -150,7 +137,7 @@ void ili9488_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t color, 
                     ili9488_fill_rect(x + i * size, y + j * size, size, size, color);
                 }
             } else if (bg != color) {
-                // 如果背景色与前景色不同，则绘制背景色
+                // If background color is different from foreground color, draw background
                 if (size == 1) {
                     ili9488_draw_pixel(x + i, y + j, bg);
                 } else {
@@ -162,28 +149,28 @@ void ili9488_draw_char(uint16_t x, uint16_t y, unsigned char c, uint16_t color, 
     }
 }
 
-// 绘制字符串
+// Draw a string
 void ili9488_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color, uint16_t bg, uint8_t size) {
     uint16_t cursor_x = x;
     uint16_t cursor_y = y;
     
-    // 逐个绘制字符
+    // Draw characters one by one
     while (*str) {
-        // 检查换行符
+        // Check for newline
         if (*str == '\n') {
             cursor_x = x;
             cursor_y += size * 8;
         }
-        // 检查回车符
+        // Check for carriage return
         else if (*str == '\r') {
             cursor_x = x;
         }
-        // 普通字符
+        // Regular character
         else {
             ili9488_draw_char(cursor_x, cursor_y, *str, color, bg, size);
-            cursor_x += size * 6; // 字符宽度为5，加上1个像素间距
+            cursor_x += size * 6; // Character width is 5, plus 1 pixel spacing
             
-            // 行自动换行
+            // Automatic line wrap
             if (cursor_x > (320 - size * 5)) {
                 cursor_x = x;
                 cursor_y += size * 8;

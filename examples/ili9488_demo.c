@@ -108,7 +108,6 @@ static void demo_static_text(void) {
     sleep_ms(5000);
 }
 
-
 // Color animation demo
 static void demo_color_animation(void) {
     printf("Running color animation demo...\n");
@@ -406,56 +405,70 @@ static void demo_brightness_checkboard(void) {
     printf("Brightness change black and white squares and RGB color demonstration completed\n");
 }
 
+// Main program entry point
 int main() {
-    // Initialize standard library
+    // Initialize standard IO
     stdio_init_all();
-    sleep_ms(3000);  // Wait for serial initialization
-    printf("\n\n\nStarting ILI9488 LCD Demo Program...\n");
+    
+    // Display startup information
+    printf("\nILI9488 LCD Driver Demo\n");
+    printf("Version: 1.0.0\n");
+    printf("Display: ILI9488 3.5-inch 320x480 SPI TFT\n\n");
     
     // Configure LCD
     ili9488_config_t config = {
-        .spi_inst = spi0,
-        .spi_speed_hz = 40 * 1000 * 1000,  // 40MHz
-        
-        .pin_din = PIN_DIN,
-        .pin_sck = PIN_SCK,
-        .pin_cs = PIN_CS,
-        .pin_dc = PIN_DC,
-        .pin_reset = PIN_RESET,
-        .pin_bl = PIN_BL,
-        
-        .width = SCREEN_WIDTH,
-        .height = SCREEN_HEIGHT,
-        .rotation = 0,  // 0 degree rotation
+        .spi_inst = spi0,        // Use SPI0
+        .spi_speed_hz = 40000000, // 40 MHz (manufacturer recommended maximum rate)
+        .pin_din = PIN_DIN,     // MOSI
+        .pin_sck = PIN_SCK,     // SCK
+        .pin_cs = PIN_CS,       // CS
+        .pin_dc = PIN_DC,       // DC
+        .pin_reset = PIN_RESET, // Reset
+        .pin_bl = PIN_BL,       // Backlight
+        .width = SCREEN_WIDTH,  // Screen width
+        .height = SCREEN_HEIGHT, // Screen height
+        .rotation = 0           // Default rotation
     };
     
-    // initialize the LCD
+    // Initialize display
     if (!ili9488_init(&config)) {
-        printf("Error: LCD initialization failed\n");
+        printf("Error: Failed to initialize ILI9488 display\n");
         return -1;
     }
-
-    // // 运行颜色测试
-    // demo_color_test();
     
-    // 运行静态文字演示
+    // Set initial brightness
+    ili9488_set_backlight_brightness(255); // 0-255
+    
+    // Run all demo functions in sequence
+    printf("Starting demo sequence...\n");
+    
+    // Demo 1: Static text display
+    printf("\n=== Demo 1: Static Text Display ===\n");
     demo_static_text();
     
-    // 运行动态颜色动画演示
-    //demo_color_animation();
+    // Demo 2: Color test - fill screen with different colors
+    printf("\n=== Demo 2: Color Test ===\n");
+    demo_color_test();
     
-    // 运行新添加的演示功能
-    // demo_gradient_transition();       // New: Gradient transition
-    // demo_brightness_checkboard();     // New: Brightness change squares
-
-
-
-    printf("Demo completed.\n");
+    // Demo 3: Gradient transition
+    printf("\n=== Demo 3: Gradient Transition ===\n");
+    demo_gradient_transition();
     
-    // Keep displaying last frame
-    while (true) {
-        sleep_ms(1000);
-    }
+    // Demo 4: Black and white squares with brightness change, then RGB color change
+    printf("\n=== Demo 4: Brightness and Color Checkerboard ===\n");
+    demo_brightness_checkboard();
+    
+    // Demo 5: Dynamic color animation (more intense)
+    printf("\n=== Demo 5: Color Animation ===\n");
+    demo_color_animation();
+    
+    // All demos completed
+    printf("\nAll demos completed. Turning off display...\n");
+    
+    // Turn off backlight
+    ili9488_set_backlight(false);
+    
+    printf("Demo completed successfully.\n");
     
     return 0;
 } 

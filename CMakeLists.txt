@@ -1,19 +1,19 @@
 # Generated Cmake Pico project file
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 
-# 指定Pico SDK路径 (如果需要)
-# set(PICO_SDK_PATH "你的Pico SDK路径")
+# Specify Pico SDK path (if needed)
+# set(PICO_SDK_PATH "your Pico SDK path")
 
-# 设置Pico板型 - 使用字符串形式
-set(PICO_BOARD "pico" CACHE STRING "Board type")
+# Set Pico board type - use string format
+set(PICO_BOARD "pico")
 
-# 设置C/C++标准
+# Set C/C++ standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 完全禁用picotool和其他工具下载，避免网络问题
+# Completely disable picotool and other tool downloads to avoid network issues
 set(PICO_SKIP_TOOLS_PACKAGE_SEARCH 1)
 set(SKIP_TOOL_RISCV_OPENOCD 1)
 set(SKIP_TOOL_PICOTOOL 1)
@@ -37,58 +37,94 @@ if (EXISTS ${picoVscode})
 endif()
 # ====================================================================================
 
-# 包含Pico SDK导入脚本
+# Include Pico SDK import script
 include(pico_sdk_import.cmake)
 
-# 初始化项目（必须在pico_sdk_init前）
-project(ili9488_pico C CXX ASM)
+# Project name 
+project(ILI9488_Pico C CXX ASM)
 
-# 初始化Pico SDK
+# Define source files
+set(LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
+set(EXAMPLES_DIR ${CMAKE_CURRENT_LIST_DIR}/examples)
+
+set(LIB_SOURCES
+    ${LIB_DIR}/ili9488.c
+    ${LIB_DIR}/ili9488_hal.c
+    ${LIB_DIR}/ili9488_gfx.c
+    ${LIB_DIR}/ili9488_font.c
+)
+
+# Include directories
+include_directories(${INCLUDE_DIR})
+
+# Initialize project (must be done before pico_sdk_init)
+project(ILI9488_Pico C CXX ASM)
+
+# Initialize Pico SDK
 pico_sdk_init()
 
-# 添加ILI9488库
-add_library(ili9488_lib
-    src/ili9488_hal.c
-    src/ili9488.c
-    src/ili9488_gfx.c
-    src/ili9488_font.c
+# Add library files
+add_library(ili9488_driver STATIC ${LIB_SOURCES})
+
+target_include_directories(ili9488_driver PUBLIC
+    ${INCLUDE_DIR}
 )
 
-# 设置ILI9488库包含路径
-target_include_directories(ili9488_lib PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/include
-)
-
-# 设置ILI9488库链接库
-target_link_libraries(ili9488_lib
+# Link Pico SDK related libraries
+target_link_libraries(ili9488_driver PUBLIC
     pico_stdlib
     hardware_spi
     hardware_gpio
     hardware_pwm
+    hardware_dma  # Add DMA support
 )
 
-# 添加示例程序 - ILI9488演示
-add_executable(ili9488_demo
-    examples/ili9488_demo.c
-)
-
-# 示例程序包含目录
-target_include_directories(ili9488_demo PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/include
-)
-
-# 链接示例程序需要的库
+# Add example programs
+# Compile basic example program
+add_executable(ili9488_demo ${EXAMPLES_DIR}/ili9488_demo.c)
 target_link_libraries(ili9488_demo
-    ili9488_lib
+    ili9488_driver
     pico_stdlib
     hardware_spi
     hardware_gpio
     hardware_pwm
+    hardware_dma  # Add DMA support
 )
 
-# 配置示例程序的标准输入/输出
+# Set output files
+pico_add_extra_outputs(ili9488_demo)
+
+# Compile optimization demo program
+add_executable(ili9488_optimization_demo ${EXAMPLES_DIR}/ili9488_optimization_demo.c)
+target_link_libraries(ili9488_optimization_demo
+    ili9488_driver
+    pico_stdlib
+    hardware_spi
+    hardware_gpio
+    hardware_pwm
+    hardware_dma
+)
+pico_add_extra_outputs(ili9488_optimization_demo)
+
+# Compile physical dice simulation demo program
+add_executable(ili9488_dice_physics_demo ${EXAMPLES_DIR}/ili9488_dice_physics_demo.c)
+target_link_libraries(ili9488_dice_physics_demo
+    ili9488_driver 
+    pico_stdlib
+    hardware_spi
+    hardware_gpio
+    hardware_pwm
+    hardware_dma
+)
+pico_add_extra_outputs(ili9488_dice_physics_demo)
+
+# Enable USB output, disable UART output
 pico_enable_stdio_usb(ili9488_demo 1)
 pico_enable_stdio_uart(ili9488_demo 0)
 
-# 创建示例程序的额外输出格式文件
-pico_add_extra_outputs(ili9488_demo)
+pico_enable_stdio_usb(ili9488_optimization_demo 1)
+pico_enable_stdio_uart(ili9488_optimization_demo 0)
+
+pico_enable_stdio_usb(ili9488_dice_physics_demo 1)
+pico_enable_stdio_uart(ili9488_dice_physics_demo 0)
