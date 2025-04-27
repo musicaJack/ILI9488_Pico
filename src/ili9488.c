@@ -186,14 +186,13 @@ void rgb565_to_rgb666(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
 
 // Convert 24-bit RGB color to RGB666 format - new, according to manufacturer standard
 void rgb24_to_rgb666(uint32_t color24, uint8_t *r, uint8_t *g, uint8_t *b) {
-    *r = (color24 >> 16) & 0xFF;  // Extract R component (high 8 bits)
-    *g = (color24 >> 8) & 0xFF;   // Extract G component (middle 8 bits)
-    *b = color24 & 0xFF;          // Extract B component (low 8 bits)
+    // Extract RGB components - no shift, using direct values
+    *r = (color24 >> 16) & 0xFF;
+    *g = (color24 >> 8) & 0xFF;
+    *b = color24 & 0xFF;
     
-    // Convert 8-bit components to 6-bit components
-    *r = *r >> 2;  // 8-bit to 6-bit
-    *g = *g >> 2;  // 8-bit to 6-bit
-    *b = *b >> 2;  // 8-bit to 6-bit
+    // No need to convert, already in correct format for 18-bit RGB666
+    // Manufacturer's code sends high 6 bits directly without any shift
 }
 
 // Draw a single pixel
@@ -220,8 +219,10 @@ void ili9488_draw_pixel_rgb24(uint16_t x, uint16_t y, uint32_t color24) {
     
     ili9488_set_window(x, y, x, y);
     
-    uint8_t r, g, b;
-    rgb24_to_rgb666(color24, &r, &g, &b);
+    // 直接使用颜色值的字节，不进行右移，符合厂商实现
+    uint8_t r = (color24 >> 16) & 0xFF;
+    uint8_t g = (color24 >> 8) & 0xFF;
+    uint8_t b = color24 & 0xFF;
     
     // Send RGB666 format data (three bytes)
     uint8_t data[3] = {r, g, b};
@@ -523,7 +524,10 @@ void ili9488_fill_area(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint1
  * @param color24 24-bit RGB color
  */
 void ili9488_fill_area_rgb24(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color24) {
-    // Ensure starting coordinates are less than ending coordinates
+    if (x0 >= ili9488.width || y0 >= ili9488.height || x1 >= ili9488.width || y1 >= ili9488.height) {
+        return;  // Out of display bounds
+    }
+    
     if (x0 > x1) {
         uint16_t temp = x0;
         x0 = x1;
@@ -536,48 +540,41 @@ void ili9488_fill_area_rgb24(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
         y1 = temp;
     }
     
-    // Set window
+    uint32_t num_pixels = (x1 - x0 + 1) * (y1 - y0 + 1);
+    printf("Filling area (%u,%u) to (%u,%u) with color 0x%06lX, %lu pixels\n", x0, y0, x1, y1, color24, num_pixels);
+    
     ili9488_set_window(x0, y0, x1, y1);
     
-    // Convert color format
-    uint8_t r, g, b;
-    rgb24_to_rgb666(color24, &r, &g, &b);
+    // 直接使用颜色值的字节，不进行右移，符合厂商实现
+    uint8_t r = (color24 >> 16) & 0xFF;
+    uint8_t g = (color24 >> 8) & 0xFF;
+    uint8_t b = color24 & 0xFF;
     
-    // Calculate total pixels
-    uint32_t total_pixels = (uint32_t)(x1 - x0 + 1) * (y1 - y0 + 1);
+    uint8_t color_data[3] = {r, g, b};
     
-    // Prepare RGB666 data (3 bytes/pixel)
-    uint8_t rgb_data[3] = {r, g, b};
+    // Optimize by sending pixels in batches to avoid SPI overhead
+    const uint16_t batch_size = 128; // Number of pixels to send in one batch
+    uint8_t batch_data[3 * batch_size];
     
-    // If area is small, fill pixel by pixel directly
-    if (total_pixels <= 256) {
-        for (uint32_t i = 0; i < total_pixels; i++) {
-            ili9488_hal_write_data_buffer(rgb_data, 3);
-        }
-        return;
+    // Create a batch of color data
+    for (uint16_t i = 0; i < batch_size; i++) {
+        batch_data[i * 3] = color_data[0];
+        batch_data[i * 3 + 1] = color_data[1];
+        batch_data[i * 3 + 2] = color_data[2];
     }
     
-    // For large areas, use buffer batch filling for efficiency
-    #define BUFFER_SIZE 256  // Buffer size (bytes = BUFFER_SIZE * 3)
-    uint8_t buffer[BUFFER_SIZE * 3];
-    
-    // Pre-fill buffer
-    for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
-        buffer[i * 3] = r;
-        buffer[i * 3 + 1] = g;
-        buffer[i * 3 + 2] = b;
-    }
-    
-    // Fill in batches
-    uint32_t remaining = total_pixels;
-    
+    // Send batches
+    uint32_t remaining = num_pixels;
     while (remaining > 0) {
-        uint32_t batch_size = remaining > BUFFER_SIZE ? BUFFER_SIZE : remaining;
-        ili9488_hal_write_data_buffer(buffer, batch_size * 3);
-        remaining -= batch_size;
+        uint16_t to_send = (remaining > batch_size) ? batch_size : remaining;
+        ili9488_hal_write_data_buffer(batch_data, to_send * 3);
+        remaining -= to_send;
+        
+        // Print progress
+        if (remaining % 10000 == 0 && remaining > 0) {
+            printf("Remaining: %lu pixels\n", remaining);
+        }
     }
-    
-    #undef BUFFER_SIZE
 }
 
 /**

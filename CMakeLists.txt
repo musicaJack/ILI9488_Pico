@@ -95,17 +95,6 @@ target_link_libraries(ili9488_demo
 # Set output files
 pico_add_extra_outputs(ili9488_demo)
 
-# Compile optimization demo program
-add_executable(ili9488_optimization_demo ${EXAMPLES_DIR}/ili9488_optimization_demo.c)
-target_link_libraries(ili9488_optimization_demo
-    ili9488_driver
-    pico_stdlib
-    hardware_spi
-    hardware_gpio
-    hardware_pwm
-    hardware_dma
-)
-pico_add_extra_outputs(ili9488_optimization_demo)
 
 # Compile physical dice simulation demo program
 add_executable(ili9488_dice_physics_demo ${EXAMPLES_DIR}/ili9488_dice_physics_demo.c)
@@ -119,12 +108,24 @@ target_link_libraries(ili9488_dice_physics_demo
 )
 pico_add_extra_outputs(ili9488_dice_physics_demo)
 
+# Compile Chinese font demo program
+#add_executable(ili9488_chinese_demo ${EXAMPLES_DIR}/ili9488_chinese_demo.c)
+#target_link_libraries(ili9488_chinese_demo
+#    ili9488_driver
+#    pico_stdlib
+#    hardware_spi
+#    hardware_gpio
+#    hardware_pwm
+#    hardware_dma
+#)
+#pico_add_extra_outputs(ili9488_chinese_demo)
+
+
+
 # Enable USB output, disable UART output
 pico_enable_stdio_usb(ili9488_demo 1)
 pico_enable_stdio_uart(ili9488_demo 0)
 
-pico_enable_stdio_usb(ili9488_optimization_demo 1)
-pico_enable_stdio_uart(ili9488_optimization_demo 0)
-
 pico_enable_stdio_usb(ili9488_dice_physics_demo 1)
 pico_enable_stdio_uart(ili9488_dice_physics_demo 0)
+

@@ -179,3 +179,33 @@ void ili9488_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color
         str++;
     }
 }
+
+// Draw a Chinese character
+void ili9488_draw_chinese(uint16_t x, uint16_t y, uint8_t index, uint16_t color, const unsigned char (*font_data)[32]) {
+    if ((x >= 320) || // Exceeds screen width
+        (y >= 480) || // Exceeds screen height
+        ((x + 16 - 1) < 0) || // Outside left boundary
+        ((y + 16 - 1) < 0)) { // Outside top boundary
+        return;
+    }
+    
+    // Set drawing window for the character area
+    for (uint8_t i = 0; i < 16; i++) {
+        // 中文字符是16x16点阵，每行由两个字节表示
+        // 每个字节表示8个像素点
+        uint8_t line_data1 = font_data[index][i*2];     // 前8位
+        uint8_t line_data2 = font_data[index][i*2 + 1]; // 后8位
+        
+        for (uint8_t j = 0; j < 8; j++) {
+            // 绘制前8个点
+            if (line_data1 & (0x80 >> j)) {
+                ili9488_draw_pixel(x + j, y + i, color);
+            }
+            
+            // 绘制后8个点
+            if (line_data2 & (0x80 >> j)) {
+                ili9488_draw_pixel(x + j + 8, y + i, color);
+            }
+        }
+    }
+}

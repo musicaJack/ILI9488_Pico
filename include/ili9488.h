@@ -37,16 +37,16 @@ typedef struct {
 } ili9488_config_t;
 
 /**
- * @brief Color definitions (RGB666 format, according to manufacturer standard)
+ * @brief Color definitions - using manufacturer values (RGB666 format)
  */
-#define ILI9488_BLACK       0x000000  // Black
-#define ILI9488_WHITE       0xFCFCFC  // White
-#define ILI9488_RED         0xFC0000  // Red
-#define ILI9488_GREEN       0x00FC00  // Green
-#define ILI9488_BLUE        0x0000FC  // Blue
-#define ILI9488_YELLOW      0xFCFC00  // Yellow
-#define ILI9488_CYAN        0x00FCFC  // Cyan
-#define ILI9488_MAGENTA     0xFC00FC  // Magenta
+#define ILI9488_RED     0xFC0000    // Red
+#define ILI9488_GREEN   0x00FC00    // Green
+#define ILI9488_BLUE    0x0000FC    // Blue
+#define ILI9488_WHITE   0xFCFCFC    // White
+#define ILI9488_BLACK   0x000000    // Black
+#define ILI9488_YELLOW  0xFCFC00    // Yellow
+#define ILI9488_CYAN    0x00FCFC    // Cyan
+#define ILI9488_MAGENTA 0xFC00FC    // Magenta
 
 /* ILI9488 command definitions */
 #define ILI9488_NOP        0x00     // No operation
