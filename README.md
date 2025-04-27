@@ -11,7 +11,6 @@ Main features:
 - Support for multiple rotation directions
 - Provides basic graphics drawing API (points, lines, rectangles, circles, etc.)
 - Support for text display
-- Support for Chinese character display
 - Provides hardware abstraction layer for cross-platform portability
 - Includes example code
 - Performance optimizations including DMA transfers and partial refresh
