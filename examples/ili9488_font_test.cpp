@@ -59,28 +59,28 @@ void testDisplayFont(ILI9488Driver& driver) {
     printf("=== Display Font Test ===\n");
     
     // 清屏
-    driver.fillScreen(rgb565::WHITE);
+    driver.fillScreen(rgb565::BLACK);
     
     // 绘制测试文本
     uint16_t y = 10;
     
     // 测试基本文本
-    driver.drawString(10, y, "Hello, ILI9488!", rgb565::BLACK, rgb565::WHITE);
+    driver.drawString(10, y, "Hello, ILI9488!", rgb565::GREEN, rgb565::BLACK);
     y += font::FONT_HEIGHT + 5;
     
     // 测试数字
-    driver.drawString(10, y, "Numbers: 0123456789", rgb565::RED, rgb565::WHITE);
+    driver.drawString(10, y, "Numbers: 0123456789", rgb565::RED, rgb565::BLACK);
     y += font::FONT_HEIGHT + 5;
     
     // 测试符号
-    driver.drawString(10, y, "Symbols: !@#$%^&*()", rgb565::BLUE, rgb565::WHITE);
+    driver.drawString(10, y, "Symbols: !@#$%^&*()", rgb565::BLUE, rgb565::BLACK);
     y += font::FONT_HEIGHT + 5;
     
     // 测试大小写字母
-    driver.drawString(10, y, "ABCDEFGHIJKLMNOPQRST", rgb565::GREEN, rgb565::WHITE);
+    driver.drawString(10, y, "ABCDEFGHIJKLMNOPQRST", rgb565::YELLOW, rgb565::BLACK);
     y += font::FONT_HEIGHT + 5;
     
-    driver.drawString(10, y, "abcdefghijklmnopqrst", rgb565::MAGENTA, rgb565::WHITE);
+    driver.drawString(10, y, "abcdefghijklmnopqrst", rgb565::MAGENTA, rgb565::BLACK);
     y += font::FONT_HEIGHT + 5;
     
     // 测试长文本换行
