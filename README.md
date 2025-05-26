@@ -74,17 +74,6 @@ Raspberry Pi Pico         ILI9488 Display
 +---------------+         +---------------+
 ```
 
-| ILI9488 Pin | Pico Pin | 功能 |
-|-------------|----------|------|
-| VCC | 3.3V | 电源 |
-| GND | GND | 地线 |
-| CS | GPIO 17 | 片选 |
-| DC | GPIO 20 | 数据/命令选择 |
-| RST | GPIO 15 | 复位 |
-| SCK | GPIO 18 | SPI时钟 |
-| MOSI | GPIO 19 | SPI数据输入 |
-| BL | GPIO 10 | 背光控制 |
-
 ### 基本使用示例
 
 ```cpp

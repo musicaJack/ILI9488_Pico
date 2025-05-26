@@ -383,8 +383,15 @@ int main() {
         return -1;
     }
     
+    // Set 180 degree rotation to fix upside-down display
+    driver.setRotation(Rotation::Portrait_180);  // Fix upside-down display
+    
+    // Clear the entire screen to prevent display artifacts
+    driver.fillScreen(rgb565::BLACK);
+    sleep_ms(100);  // Allow display to stabilize
+    
     driver.setBacklight(true);
-    printf("Display initialized successfully!\n");
+    printf("Display initialized successfully with 180° rotation!\n");
     
     // Performance benchmarks
     BenchmarkRunner benchmark(driver, gfx);
