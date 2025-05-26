@@ -72,7 +72,7 @@ function(create_example_target target_name source_file)
 endfunction()
 
 # Modern C++ demos
-create_example_target(ili9488_modern_demo examples/ili9488_modern_demo.cpp)
-create_example_target(ili9488_modern_optimization_demo examples/ili9488_modern_optimization_demo.cpp)
-create_example_target(ili9488_modern_graphics_demo examples/ili9488_modern_graphics_demo.cpp)
+create_example_target(ili9488_demo examples/ili9488_demo.cpp)
+create_example_target(ili9488_optimization_demo examples/ili9488_optimization_demo.cpp)
+create_example_target(ili9488_graphics_demo examples/ili9488_graphics_demo.cpp)
 create_example_target(ili9488_font_test examples/ili9488_font_test.cpp)
