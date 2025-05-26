@@ -1,29 +1,35 @@
 @echo off
-setlocal enabledelayedexpansion
-REM Build ILI9488 Pico example programs
+echo  start build...
 
-echo Creating build directory...
-if not exist build mkdir build
+rem 设置Pico SDK路径
+set PICO_SDK_PATH=C:\Program Files\Raspberry Pi\Pico SDK v1.5.1\pico-sdk
+echo  set PICO_SDK_PATH to %PICO_SDK_PATH%
 
-echo Entering build directory...
-cd build
-
-echo Running CMake...
-cmake -G "MinGW Makefiles" ..
-
-echo Starting compilation...
-mingw32-make
-
-echo Compilation complete!
-
-echo Generated files:
-echo ------------------------------
-for %%f in (*.uf2) do (
-    echo - %%f
+rem 复制pico_sdk_import.cmake文件(如果存在)
+if exist "%PICO_SDK_PATH%\external\pico_sdk_import.cmake" (
+    echo  copying pico_sdk_import.cmake from SDK external directory...
+    copy "%PICO_SDK_PATH%\external\pico_sdk_import.cmake" .
+) else if exist "%PICO_SDK_PATH%\pico_sdk_import.cmake" (
+    echo  copying pico_sdk_import.cmake from SDK root...
+    copy "%PICO_SDK_PATH%\pico_sdk_import.cmake" .
 )
-echo ------------------------------
 
+if exist build (
+    echo  clean old build files...
+    rd /s /q build
+)
+
+mkdir build
+cd build
+cmake .. -G "MinGW Makefiles"
+mingw32-make -j8
+
+if %ERRORLEVEL% NEQ 0 (
+  echo  build failed!
+  cd ..
+  exit /b %ERRORLEVEL%
+)
+
+echo  build success!
+echo UF2 file has been generated in the build directory
 cd ..
-
-echo Build process completed.
-pause

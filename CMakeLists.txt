@@ -1,131 +1,78 @@
-# Generated Cmake Pico project file
+cmake_minimum_required(VERSION 3.13)
 
-cmake_minimum_required(VERSION 3.12)
+# Pull in Raspberry Pi Pico SDK (must be defined before project)
+include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Specify Pico SDK path (if needed)
-# set(PICO_SDK_PATH "your Pico SDK path")
-
-# Set Pico board type - use string format
-set(PICO_BOARD "pico")
-
-# Set C/C++ standards
-set(CMAKE_C_STANDARD 11)
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
 
-# Completely disable picotool and other tool downloads to avoid network issues
-set(PICO_SKIP_TOOLS_PACKAGE_SEARCH 1)
-set(SKIP_TOOL_RISCV_OPENOCD 1)
-set(SKIP_TOOL_PICOTOOL 1)
-set(PICO_SDK_FETCH_FROM_GIT 0)
-set(PICOTOOL_FETCH_FROM_GIT 0)
-set(PICO_SKIP_TOOL_CHECKS 1)
-set(PICO_NO_HARDWARE 0)
+# Project definition
+project(ILI9488_Modern_CPP CXX C ASM)
 
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.1.1)
-set(toolchainVersion 14_2_Rel1)
-set(picotoolVersion 2.1.1)
-set(picoVscode ${PICO_SDK_PATH}/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
-# ====================================================================================
+# Compiler options for better code quality (reduced warnings for embedded)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O2 -Wno-unused-parameter -Wno-pedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -O2 -Wno-unused-parameter")
 
-# Include Pico SDK import script
-include(pico_sdk_import.cmake)
-
-# Project name 
-project(ILI9488_Pico C CXX ASM)
-
-# Define source files
-set(LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
-set(INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
-set(EXAMPLES_DIR ${CMAKE_CURRENT_LIST_DIR}/examples)
-
-set(LIB_SOURCES
-    ${LIB_DIR}/ili9488.c
-    ${LIB_DIR}/ili9488_hal.c
-    ${LIB_DIR}/ili9488_gfx.c
-    ${LIB_DIR}/ili9488_font.c
-)
-
-# Include directories
-include_directories(${INCLUDE_DIR})
-
-# Initialize project (must be done before pico_sdk_init)
-project(ILI9488_Pico C CXX ASM)
-
-# Initialize Pico SDK
+# Initialize the Pico SDK
 pico_sdk_init()
 
-# Add library files
-add_library(ili9488_driver STATIC ${LIB_SOURCES})
+# === Modern C++ ILI9488 Driver Library ===
 
-target_include_directories(ili9488_driver PUBLIC
-    ${INCLUDE_DIR}
+# Source files for the modern C++ driver
+set(MODERN_DRIVER_SOURCES
+    src/ili9488_driver.cpp
+    src/ili9488_ui.cpp
+    src/hal/ili9488_hal.cpp
+    src/fonts/ili9488_font.cpp
 )
 
-# Link Pico SDK related libraries
-target_link_libraries(ili9488_driver PUBLIC
-    pico_stdlib
-    hardware_spi
-    hardware_gpio
-    hardware_pwm
-    hardware_dma  # Add DMA support
+# Create the modern driver library
+add_library(ili9488_modern_driver STATIC ${MODERN_DRIVER_SOURCES})
+
+# Include directories
+target_include_directories(ili9488_modern_driver PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-# Add example programs
-# Compile basic example program
-add_executable(ili9488_demo ${EXAMPLES_DIR}/ili9488_demo.c)
-target_link_libraries(ili9488_demo
-    ili9488_driver
-    pico_stdlib
-    hardware_spi
-    hardware_gpio
-    hardware_pwm
-    hardware_dma  # Add DMA support
-)
-
-# Set output files
-pico_add_extra_outputs(ili9488_demo)
-
-
-# Compile physical dice simulation demo program
-add_executable(ili9488_dice_physics_demo ${EXAMPLES_DIR}/ili9488_dice_physics_demo.c)
-target_link_libraries(ili9488_dice_physics_demo
-    ili9488_driver 
+# Link Pico SDK libraries
+target_link_libraries(ili9488_modern_driver PUBLIC
     pico_stdlib
     hardware_spi
     hardware_gpio
     hardware_pwm
     hardware_dma
 )
-pico_add_extra_outputs(ili9488_dice_physics_demo)
 
-# Compile Chinese font demo program
-#add_executable(ili9488_chinese_demo ${EXAMPLES_DIR}/ili9488_chinese_demo.c)
-#target_link_libraries(ili9488_chinese_demo
-#    ili9488_driver
-#    pico_stdlib
-#    hardware_spi
-#    hardware_gpio
-#    hardware_pwm
-#    hardware_dma
-#)
-#pico_add_extra_outputs(ili9488_chinese_demo)
+# === Legacy C API Compatibility Layer ===
+# Note: Legacy wrapper removed as original C headers are not available
 
+# === Example Programs ===
 
+# Helper function to create example executables
+function(create_example_target target_name source_file)
+    add_executable(${target_name} ${source_file})
+    
+    target_link_libraries(${target_name}
+        ili9488_modern_driver
+        pico_stdlib
+        hardware_spi
+        hardware_gpio
+        hardware_pwm
+        hardware_dma
+    )
+    
+    # Enable USB output
+    pico_enable_stdio_usb(${target_name} 1)
+    pico_enable_stdio_uart(${target_name} 0)
+    
+    # Generate UF2 output
+    pico_add_extra_outputs(${target_name})
+endfunction()
 
-# Enable USB output, disable UART output
-pico_enable_stdio_usb(ili9488_demo 1)
-pico_enable_stdio_uart(ili9488_demo 0)
-
-pico_enable_stdio_usb(ili9488_dice_physics_demo 1)
-pico_enable_stdio_uart(ili9488_dice_physics_demo 0)
-
+# Modern C++ demos
+create_example_target(ili9488_modern_demo examples/ili9488_modern_demo.cpp)
+create_example_target(ili9488_modern_optimization_demo examples/ili9488_modern_optimization_demo.cpp)
+create_example_target(ili9488_modern_graphics_demo examples/ili9488_modern_graphics_demo.cpp)
+create_example_target(ili9488_font_test examples/ili9488_font_test.cpp)
