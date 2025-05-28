@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
@@ -186,51 +187,245 @@ public:
                (circle_count * 1000.0f) / elapsed_ms);
     }
     
+    // Benchmark: Text rendering performance
+    void benchmarkTextRendering() {
+        printf("\n=== Text Rendering Benchmark ===\n");
+        
+        PerformanceTimer timer;
+        constexpr int text_iterations = 10;
+        
+        // Clear screen first
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(100);
+        
+        // Test 1: Single character rendering
+        printf("Testing single character rendering...\n");
+        timer.start();
+        for (int i = 0; i < text_iterations * 10; ++i) {
+            uint16_t x = (i % 20) * 16;  // 16 pixels wide per char
+            uint16_t y = (i / 20) * 16;  // 16 pixels high per char
+            char test_char = 'A' + (i % 26);  // Cycle through A-Z
+            
+            if (x < driver_.getWidth() - 16 && y < driver_.getHeight() - 16) {
+                driver_.drawChar(x, y, test_char, 
+                               rgb888::WHITE, rgb888::BLACK);
+            }
+        }
+        uint32_t char_time = timer.getElapsedMs();
+        
+        printf("Single chars: %lu ms (%d chars), %.2f chars/sec\n",
+               (unsigned long)char_time, text_iterations * 10, 
+               (text_iterations * 10 * 1000.0f) / char_time);
+        
+        sleep_ms(500);  // Allow display to update
+        
+        // Test 2: String rendering
+        printf("Testing string rendering...\n");
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(100);
+        
+        const char* test_strings[] = {
+            "Hello World!",
+            "ILI9488 Display",
+            "Performance Test",
+            "Raspberry Pi Pico",
+            "Modern C++ Driver"
+        };
+        
+        timer.start();
+        for (int i = 0; i < text_iterations; ++i) {
+            for (size_t j = 0; j < sizeof(test_strings) / sizeof(test_strings[0]); ++j) {
+                uint16_t y = j * 20;  // Space lines 20 pixels apart
+                if (y < driver_.getHeight() - 16) {
+                    driver_.drawString(10, y, test_strings[j], 
+                                     rgb888::GREEN, rgb888::BLACK);
+                }
+            }
+        }
+        uint32_t string_time = timer.getElapsedMs();
+        
+        printf("String rendering: %lu ms (%d iterations), %.2f strings/sec\n",
+               (unsigned long)string_time, text_iterations, 
+               (text_iterations * 1000.0f) / string_time);
+        
+        sleep_ms(1000);  // Let user see the final result
+        
+        // Test 3: Large text stress test
+        printf("Testing large text rendering...\n");
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(100);
+        
+        timer.start();
+        const char* long_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                               "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+        
+        for (int i = 0; i < 5; ++i) {
+            uint16_t y = i * 20;
+            if (y < driver_.getHeight() - 16) {
+                // Truncate string to fit display width
+                std::string display_text(long_text);
+                size_t max_chars = driver_.getWidth() / font::FONT_WIDTH;
+                if (display_text.length() > max_chars) {
+                    display_text = display_text.substr(0, max_chars);
+                }
+                driver_.drawString(0, y, display_text.c_str(), 
+                                 rgb888::YELLOW, rgb888::BLACK);
+            }
+        }
+        uint32_t large_text_time = timer.getElapsedMs();
+        
+        printf("Large text: %lu ms (5 lines), %.2f lines/sec\n",
+               (unsigned long)large_text_time, 
+               (5 * 1000.0f) / large_text_time);
+        
+        sleep_ms(1000);  // Display result
+        driver_.fillScreen(rgb565::BLACK);  // Clear for next test
+    }
+    
     // Benchmark: DMA vs blocking transfers (if DMA available)
     void benchmarkDMATransfers() {
         printf("\n=== DMA Transfer Benchmark ===\n");
         
-        // Create test data
-        constexpr size_t data_size = 320 * 100 * 3; // 100 lines of RGB666 data
-        std::vector<uint8_t> test_data(data_size);
+        // Test area: 200x200 pixel rectangle in center of screen
+        constexpr uint16_t test_width = 200;
+        constexpr uint16_t test_height = 200;
+        constexpr uint16_t start_x = (320 - test_width) / 2;   // Center horizontally
+        constexpr uint16_t start_y = (480 - test_height) / 2;  // Center vertically
         
-        // Fill with pattern
-        for (size_t i = 0; i < data_size; i += 3) {
-            test_data[i] = (i / 3) & 0xFF;     // R
-            test_data[i + 1] = ((i / 3) >> 8) & 0xFF; // G
-            test_data[i + 2] = ((i / 3) >> 16) & 0xFF; // B
-        }
+        // Clear screen and show test info
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(200);
+        
+        printf("Displaying visual DMA test patterns...\n");
         
         PerformanceTimer timer;
-        constexpr int iterations = 5;
         
-        // Test blocking transfers
+        // Test 1: Blocking transfers with visible pattern
+        printf("Test 1: Blocking transfer with gradient pattern\n");
         timer.start();
-        for (int i = 0; i < iterations; ++i) {
-            driver_.writePixels(0, i * 20, 319, i * 20 + 19, 
-                              reinterpret_cast<const uint16_t*>(test_data.data()),
-                              data_size / 6); // Each pixel is 6 bytes in RGB666, but we're passing RGB565
+        
+        // Draw red-to-green horizontal gradient using blocking transfer
+        for (uint16_t y = 0; y < test_height; ++y) {
+            for (uint16_t x = 0; x < test_width; ++x) {
+                uint8_t r = (255 * (test_width - x)) / test_width;  // Red decreases
+                uint8_t g = (255 * x) / test_width;                 // Green increases
+                uint8_t b = 50;                                     // Small blue component
+                
+                uint16_t color = rgb565::from_rgb888(r, g, b);
+                driver_.drawPixel(start_x + x, start_y + y, color);
+            }
         }
         uint32_t blocking_time = timer.getElapsedMs();
         
-        printf("Blocking transfers: %lu ms (%d iterations)\n", (unsigned long)blocking_time, iterations);
+        printf("Blocking pattern: %lu ms\n", (unsigned long)blocking_time);
+        sleep_ms(2000);  // Show pattern for 2 seconds
         
-        // Test DMA transfers (if available)
-        if (!driver_.isDMABusy()) {
-            timer.start();
-            for (int i = 0; i < iterations; ++i) {
-                if (driver_.writeDMA(test_data.data(), data_size)) {
-                    driver_.waitDMAComplete();
+        // Test 2: Rectangle patterns using normal API
+        printf("Test 2: Rectangle pattern comparison\n");
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(200);
+        
+        timer.start();
+        
+        // Draw colorful rectangles using normal API
+        for (int i = 0; i < 20; ++i) {
+            uint16_t rect_size = 60 - (i * 2);
+            uint16_t rect_x = start_x + (test_width - rect_size) / 2;
+            uint16_t rect_y = start_y + (test_height - rect_size) / 2;
+            
+            uint8_t r = (i * 255) / 20;
+            uint8_t g = 255 - (i * 255) / 20;
+            uint8_t b = (i * 128) / 20 + 127;
+            
+            uint16_t color = rgb565::from_rgb888(r, g, b);
+            gfx_.fillRect(rect_x, rect_y, rect_size, rect_size, color);
+        }
+        uint32_t rect_time = timer.getElapsedMs();
+        
+        printf("Rectangle pattern: %lu ms\n", (unsigned long)rect_time);
+        sleep_ms(2000);  // Show pattern for 2 seconds
+        
+        // Test 3: Radial gradient pattern
+        printf("Test 3: Radial gradient pattern\n");
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(200);
+        
+        timer.start();
+        
+        // Draw radial gradient from center
+        uint16_t center_x = start_x + test_width / 2;
+        uint16_t center_y = start_y + test_height / 2;
+        uint16_t max_radius = test_width / 2;
+        
+        for (uint16_t y = 0; y < test_height; ++y) {
+            for (uint16_t x = 0; x < test_width; ++x) {
+                uint16_t px = start_x + x;
+                uint16_t py = start_y + y;
+                
+                // Calculate distance from center
+                int dx = px - center_x;
+                int dy = py - center_y;
+                uint16_t distance = sqrt(dx*dx + dy*dy);
+                
+                if (distance <= max_radius) {
+                    uint8_t intensity = 255 - (255 * distance) / max_radius;
+                    uint8_t r = intensity;
+                    uint8_t g = intensity / 2;
+                    uint8_t b = 255 - intensity;
+                    
+                    uint16_t color = rgb565::from_rgb888(r, g, b);
+                    driver_.drawPixel(px, py, color);
                 }
             }
-            uint32_t dma_time = timer.getElapsedMs();
-            
-            printf("DMA transfers: %lu ms (%d iterations)\n", (unsigned long)dma_time, iterations);
-            printf("DMA speedup: %.2fx\n", 
-                   static_cast<float>(blocking_time) / dma_time);
-        } else {
-            printf("DMA not available on this configuration\n");
         }
+        uint32_t radial_time = timer.getElapsedMs();
+        
+        printf("Radial pattern: %lu ms\n", (unsigned long)radial_time);
+        sleep_ms(2000);  // Show pattern for 2 seconds
+        
+        // Test 4: DMA test (if available) - animate color bars
+        if (!driver_.isDMABusy()) {
+            printf("Test 4: DMA capability test\n");
+            driver_.fillScreen(rgb565::BLACK);
+            sleep_ms(200);
+            
+            // Create animated color bars
+            for (int frame = 0; frame < 10; ++frame) {
+                timer.start();
+                
+                // Fill screen with animated bars
+                for (uint16_t y = 0; y < driver_.getHeight(); y += 20) {
+                    uint8_t r = ((frame * 25) + (y / 4)) & 0xFF;
+                    uint8_t g = ((frame * 35) + (y / 3)) & 0xFF;
+                    uint8_t b = ((frame * 45) + (y / 2)) & 0xFF;
+                    
+                    uint16_t color = rgb565::from_rgb888(r, g, b);
+                    
+                    // Fill each bar
+                    for (uint16_t bar_y = y; bar_y < y + 15 && bar_y < driver_.getHeight(); ++bar_y) {
+                        for (uint16_t x = 0; x < driver_.getWidth(); ++x) {
+                            driver_.drawPixel(x, bar_y, color);
+                        }
+                    }
+                }
+                
+                uint32_t frame_time = timer.getElapsedMs();
+                printf("Frame %d: %lu ms\n", frame + 1, (unsigned long)frame_time);
+                sleep_ms(100);
+            }
+        } else {
+            printf("DMA not available for animated test\n");
+        }
+        
+        // Summary
+        printf("\n=== Visual Pattern Test Results ===\n");
+        printf("Gradient pattern: %lu ms\n", (unsigned long)blocking_time);
+        printf("Rectangle pattern: %lu ms\n", (unsigned long)rect_time);
+        printf("Radial pattern: %lu ms\n", (unsigned long)radial_time);
+        
+        // Clear display after test
+        driver_.fillScreen(rgb565::BLACK);
+        sleep_ms(500);
     }
 };
 
@@ -381,11 +576,10 @@ int main() {
     benchmark.benchmarkCircles();
     sleep_ms(2000);
     
-    // Skip text rendering benchmark to avoid issues
-    // benchmark.benchmarkTextRendering();
+    benchmark.benchmarkTextRendering();
     
-    // benchmark.benchmarkDMATransfers();
-    // sleep_ms(1000);
+    benchmark.benchmarkDMATransfers();
+    sleep_ms(1000);
     
     printf("\nBasic benchmarks completed, skipping complex graphics demos...\n");
     

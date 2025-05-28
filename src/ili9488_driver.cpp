@@ -35,9 +35,6 @@ namespace Commands {
     constexpr uint8_t PTLAR   = 0x30;
 }
 
-/**
- * @brief PIMPL Implementation class for ILI9488Driver
- */
 struct ILI9488Driver::Impl {
     // Hardware configuration
     spi_inst_t* spi_inst_;
@@ -58,6 +55,9 @@ struct ILI9488Driver::Impl {
     // DMA support
     int dma_channel_ = -1;
     volatile bool dma_busy_ = false;
+    
+    // Static instance pointer for DMA callback
+    static Impl* dma_instance_;
     
     // Display dimensions (considering rotation)
     uint16_t display_width_ = LCD_WIDTH;
@@ -122,8 +122,9 @@ struct ILI9488Driver::Impl {
     
     // Static callback wrapper
     static void dmaCallback() {
-        // Note: In real implementation, we'd need instance pointer
-        // This is a simplified version
+        if (dma_instance_ && dma_instance_->dma_channel_ >= 0) {
+            dma_instance_->dmaCompleteHandler();
+        }
     }
     
     // Convert RGB565 to RGB666 bytes
@@ -293,12 +294,16 @@ struct ILI9488Driver::Impl {
     void initializeDMA() {
         dma_channel_ = dma_claim_unused_channel(false);
         if (dma_channel_ >= 0) {
+            dma_instance_ = this;  // Set static instance pointer
             dma_channel_set_irq0_enabled(dma_channel_, true);
             irq_set_exclusive_handler(DMA_IRQ_0, dmaCallback);
             irq_set_enabled(DMA_IRQ_0, true);
         }
     }
 };
+
+// Static member definition
+ILI9488Driver::Impl* ILI9488Driver::Impl::dma_instance_ = nullptr;
 
 // Constructor
 ILI9488Driver::ILI9488Driver(spi_inst_t* spi_inst, uint8_t pin_dc, uint8_t pin_rst, uint8_t pin_cs,
