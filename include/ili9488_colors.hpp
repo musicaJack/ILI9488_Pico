@@ -52,6 +52,25 @@ namespace rgb666 {
     constexpr uint32_t ORANGE  = 0xFC8000;
     constexpr uint32_t GREENYELLOW = 0x80FC00;
     constexpr uint32_t PINK    = 0xFCC0C0;
+    
+    // === 新增贪吃蛇游戏专用颜色 ===
+    // 荧光绿色系 (适合蛇身)
+    constexpr uint32_t NEON_GREEN = 0x40FC40; // 霓虹绿
+    constexpr uint32_t BRIGHT_GREEN = 0x00FC80; // 亮绿色
+    constexpr uint32_t DARK_GREEN = 0x2C390C; // 自定义深绿色
+
+    
+    // 荧光粉色系 (适合蛇头)
+    constexpr uint32_t PINK_RED = 0xFC3498;    // 自定义粉红色
+    constexpr uint32_t NEON_PINK = 0xFC40FC;   // 霓虹粉
+    constexpr uint32_t HOT_PINK = 0xFC4080;    // 热粉色
+    constexpr uint32_t BRIGHT_MAGENTA = 0xFC00C0; // 亮洋红
+    constexpr uint32_t ELECTRIC_PINK = 0xFC80FC;  // 电光粉
+    
+    // 其他游戏常用亮色
+    constexpr uint32_t NEON_BLUE = 0x4040FC;   // 霓虹蓝
+    constexpr uint32_t NEON_YELLOW = 0xFCFC40; // 霓虹黄
+    constexpr uint32_t ELECTRIC_CYAN = 0x40FCFC; // 电光青
 }
 
 // === RGB888 Color Constants (24-bit True Color) ===

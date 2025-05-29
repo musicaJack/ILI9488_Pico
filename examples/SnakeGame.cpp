@@ -25,9 +25,9 @@
 // 颜色定义 - 统一使用RGB666格式（ILI9488原生格式，无需转换）
 #define TEXT_COLOR ili9488_colors::rgb666::WHITE
 #define BG_COLOR ili9488_colors::rgb666::BLACK
-#define SNAKE_HEAD_COLOR ili9488_colors::rgb666::PINK
-#define SNAKE_BODY_COLOR ili9488_colors::rgb666::GREEN
-#define FOOD_COLOR ili9488_colors::rgb666::PINK
+#define SNAKE_HEAD_COLOR ili9488_colors::rgb666::BRIGHT_MAGENTA
+#define SNAKE_BODY_COLOR ili9488_colors::rgb666::NEON_GREEN
+#define FOOD_COLOR ili9488_colors::rgb666::GREENYELLOW
 #define BORDER_COLOR ili9488_colors::rgb666::BLUE
 
 // 摇杆方向常量
