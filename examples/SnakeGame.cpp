@@ -22,13 +22,13 @@
 #define INITIAL_SNAKE_LENGTH 3
 #define GAME_SPEED_MS 200
 
-// 颜色定义 - 直接使用RGB888格式避免转换偏差
-#define TEXT_COLOR_888 ili9488_colors::rgb888::WHITE
-#define BG_COLOR ili9488_colors::rgb888::BLACK
-#define SNAKE_HEAD_COLOR_888 ili9488_colors::rgb888::PINK
-#define SNAKE_BODY_COLOR ili9488_colors::rgb888::GREEN
-#define FOOD_COLOR_888 ili9488_colors::rgb888::PINK
-#define BORDER_COLOR ili9488_colors::rgb888::BLUE
+// 颜色定义 - 统一使用RGB666格式（ILI9488原生格式，无需转换）
+#define TEXT_COLOR ili9488_colors::rgb666::WHITE
+#define BG_COLOR ili9488_colors::rgb666::BLACK
+#define SNAKE_HEAD_COLOR ili9488_colors::rgb666::PINK
+#define SNAKE_BODY_COLOR ili9488_colors::rgb666::GREEN
+#define FOOD_COLOR ili9488_colors::rgb666::PINK
+#define BORDER_COLOR ili9488_colors::rgb666::BLUE
 
 // 摇杆方向常量
 #define JOYSTICK_DIRECTION_RATIO 1.5
@@ -69,10 +69,10 @@ struct GameState {
 };
 
 // 绘制网格单元
-void drawGridCell(ili9488::ILI9488Driver& driver, int16_t grid_x, int16_t grid_y, uint32_t color888) {
+void drawGridCell(ili9488::ILI9488Driver& driver, int16_t grid_x, int16_t grid_y, uint32_t color666) {
     int16_t pixel_x = grid_x * GRID_SIZE;
     int16_t pixel_y = grid_y * GRID_SIZE;
-    driver.fillArea(pixel_x, pixel_y, pixel_x + GRID_SIZE - 1, pixel_y + GRID_SIZE - 1, color888);
+    driver.fillAreaRGB666(pixel_x, pixel_y, pixel_x + GRID_SIZE - 1, pixel_y + GRID_SIZE - 1, color666);
 }
 
 // 清除网格单元
@@ -82,21 +82,21 @@ void clearGridCell(ili9488::ILI9488Driver& driver, int16_t grid_x, int16_t grid_
 
 // 绘制边框
 void drawBorder(ili9488::ILI9488Driver& driver) {
-    // 上边框
-    driver.fillArea(0, 0, SCREEN_WIDTH - 1, GRID_SIZE - 1, BORDER_COLOR);
-    // 下边框
-    driver.fillArea(0, SCREEN_HEIGHT - GRID_SIZE, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
+    // 顶部边框
+    driver.fillAreaRGB666(0, 0, SCREEN_WIDTH - 1, GRID_SIZE - 1, BORDER_COLOR);
+    // 底部边框
+    driver.fillAreaRGB666(0, SCREEN_HEIGHT - GRID_SIZE, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
     // 左边框
-    driver.fillArea(0, 0, GRID_SIZE - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
+    driver.fillAreaRGB666(0, 0, GRID_SIZE - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
     // 右边框
-    driver.fillArea(SCREEN_WIDTH - GRID_SIZE, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
+    driver.fillAreaRGB666(SCREEN_WIDTH - GRID_SIZE, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, BORDER_COLOR);
 }
 
 // 绘制蛇
 void drawSnake(ili9488::ILI9488Driver& driver, const Snake& snake) {
     // 绘制蛇头
     if (snake.length > 0) {
-        drawGridCell(driver, snake.segments[0].x, snake.segments[0].y, SNAKE_HEAD_COLOR_888);
+        drawGridCell(driver, snake.segments[0].x, snake.segments[0].y, SNAKE_HEAD_COLOR);
     }
     
     // 绘制蛇身
@@ -115,7 +115,7 @@ void drawFood(ili9488::ILI9488Driver& driver, const Position& food_pos) {
     printf("Drawing food at grid (%d, %d), pixel (%d, %d)\n", 
            food_pos.x, food_pos.y, 
            food_pos.x * GRID_SIZE, food_pos.y * GRID_SIZE);
-    drawGridCell(driver, food_pos.x, food_pos.y, FOOD_COLOR_888);
+    drawGridCell(driver, food_pos.x, food_pos.y, FOOD_COLOR);
 }
 
 // 生成随机食物位置
@@ -282,66 +282,54 @@ void drawScore(ili9488::ILI9488Driver& driver, uint16_t score) {
     int16_t text_y = 2;  // 距离顶部2像素，让文字在边框内居中
     
     // 清除分数区域，使用边框颜色
-    driver.fillArea(text_x, text_y, text_x + 120, text_y + 12, BORDER_COLOR);
+    driver.fillAreaRGB666(text_x, text_y, text_x + 120, text_y + 12, BORDER_COLOR);
     
     // 绘制分数文字，白色文字在蓝色边框背景上
     driver.drawString(text_x, text_y, score_str, 
-                     TEXT_COLOR_888, 
+                     TEXT_COLOR, 
                      BORDER_COLOR);
 }
 
 // 绘制游戏结束画面
-void drawGameOver(ili9488::ILI9488Driver& driver, uint16_t final_score, uint32_t countdown_seconds = 0) {
-    char game_over_str[] = "GAME OVER";
-    char score_str[30];
-    char restart_str[50];
-    
-    snprintf(score_str, sizeof(score_str), "Final Score: %d", final_score);
-    
-    if (countdown_seconds > 0) {
-        snprintf(restart_str, sizeof(restart_str), "Restart in %lu seconds", (unsigned long)countdown_seconds);
-    } else {
-        snprintf(restart_str, sizeof(restart_str), "Press MID to restart");
-    }
-    
-    // 绘制半透明背景（简单的黑色覆盖）
-    driver.fillArea(50, 200, 270, 280, BG_COLOR);
+void drawGameOver(ili9488::ILI9488Driver& driver, uint16_t final_score) {
+    // 清除中央区域
+    driver.fillAreaRGB666(50, 200, 270, 280, BG_COLOR);
     
     // 绘制游戏结束文字
-    driver.drawString(110, 210, game_over_str, 
-                     TEXT_COLOR_888, 
+    driver.drawString(120, 210, "Game Over!", 
+                     TEXT_COLOR, 
                      BG_COLOR);
     
+    char score_str[30];
+    snprintf(score_str, sizeof(score_str), "Final Score: %d", final_score);
     driver.drawString(90, 230, score_str, 
-                     TEXT_COLOR_888, 
+                     TEXT_COLOR, 
                      BG_COLOR);
     
-    driver.drawString(70, 250, restart_str, 
-                     TEXT_COLOR_888, 
+    driver.drawString(70, 250, "Auto restart in 5 seconds", 
+                     TEXT_COLOR, 
                      BG_COLOR);
 }
 
 // 绘制暂停画面
 void drawPaused(ili9488::ILI9488Driver& driver) {
-    char paused_str[] = "PAUSED";
-    char resume_str[] = "Press MID to resume";
+    // 清除中央区域 - 扩大区域以确保完全覆盖文字
+    driver.fillAreaRGB666(70, 220, 250, 270, BG_COLOR);
     
-    // 绘制暂停文字背景
-    driver.fillArea(80, 220, 240, 260, BG_COLOR);
-    
-    driver.drawString(130, 225, paused_str, 
-                     TEXT_COLOR_888, 
+    // 绘制暂停文字
+    driver.drawString(130, 230, "PAUSED", 
+                     TEXT_COLOR, 
                      BG_COLOR);
     
-    driver.drawString(90, 245, resume_str, 
-                     TEXT_COLOR_888, 
+    driver.drawString(90, 250, "Press MID to resume", 
+                     TEXT_COLOR, 
                      BG_COLOR);
 }
 
-// 清除暂停文字
+// 清除暂停文字（只清除暂停文字区域）
 void clearPaused(ili9488::ILI9488Driver& driver) {
-    // 只清除暂停文字区域，恢复为背景色
-    driver.fillArea(80, 220, 240, 260, BG_COLOR);
+    // 只清除暂停文字区域 - 使用与drawPaused相同的区域
+    driver.fillAreaRGB666(70, 220, 250, 270, BG_COLOR);
 }
 
 // 更新倒计时数字（只更新数字部分）
@@ -356,37 +344,33 @@ void updateCountdown(ili9488::ILI9488Driver& driver, uint32_t countdown_seconds)
     
     // 清除数字区域，只清除1-2位数字的空间，不影响后面的"seconds"
     // 数字最多2位，每位约8像素，给16像素就够了
-    driver.fillArea(number_start_x, 250, number_start_x + 16, 270, 
+    driver.fillAreaRGB666(number_start_x, 250, number_start_x + 16, 270, 
                    BG_COLOR);
     
     // 在正确位置重绘数字
     driver.drawString(number_start_x, 250, number_str, 
-                     TEXT_COLOR_888, 
+                     TEXT_COLOR, 
                      BG_COLOR);
 }
 
 // 绘制等待重新开始画面
 void drawWaitingToRestart(ili9488::ILI9488Driver& driver, uint16_t final_score) {
-    char game_over_str[] = "GAME OVER";
+    // 清除中央区域
+    driver.fillAreaRGB666(50, 200, 270, 280, BG_COLOR);
+    
+    // 绘制等待重新开始文字
+    driver.drawString(100, 210, "Game Over!", 
+                     TEXT_COLOR, 
+                     BG_COLOR);
+    
     char score_str[30];
-    char restart_str[] = "Press MID to restart";
-    
     snprintf(score_str, sizeof(score_str), "Final Score: %d", final_score);
-    
-    // 绘制半透明背景（简单的黑色覆盖）
-    driver.fillArea(50, 200, 270, 280, BG_COLOR);
-    
-    // 绘制游戏结束文字
-    driver.drawString(110, 210, game_over_str, 
-                     TEXT_COLOR_888, 
-                     BG_COLOR);
-    
     driver.drawString(90, 230, score_str, 
-                     TEXT_COLOR_888, 
+                     TEXT_COLOR, 
                      BG_COLOR);
     
-    driver.drawString(80, 250, restart_str, 
-                     TEXT_COLOR_888, 
+    driver.drawString(80, 250, "Press MID to restart", 
+                     TEXT_COLOR, 
                      BG_COLOR);
 }
 
@@ -425,12 +409,12 @@ int main() {
     joystick.set_rgb_color(JOYSTICK_LED_OFF);
     
     // 显示启动画面
-    lcd_driver.fillScreen(BG_COLOR);
+    lcd_driver.fillScreenRGB666(BG_COLOR);
     lcd_driver.drawString(100, 220, "SNAKE GAME", 
-                         TEXT_COLOR_888, 
+                         TEXT_COLOR, 
                          BG_COLOR);
     lcd_driver.drawString(100, 250, "Press MID BTN to start", 
-                         TEXT_COLOR_888, 
+                         TEXT_COLOR, 
                          BG_COLOR);
     
     // 等待开始
@@ -449,7 +433,7 @@ int main() {
     game_state.game_started = true;  // 直接开始游戏，不需要再次按键
     
     // 绘制初始游戏画面
-    lcd_driver.fillScreen(BG_COLOR);
+    lcd_driver.fillScreenRGB666(BG_COLOR);
     drawBorder(lcd_driver);
     drawSnake(lcd_driver, game_state.snake);
     drawFood(lcd_driver, game_state.food);
@@ -462,7 +446,7 @@ int main() {
     static int previous_raw_direction = 0;
     static uint8_t stable_count = 0;
     static bool is_active = false;
-    static uint32_t last_displayed_countdown = 0;  // 上次显示的倒计时秒数
+    static uint32_t last_displayed_countdown = 0;  // 跟踪上次显示的倒计时秒数
     
     // 主游戏循环
     while (true) {
@@ -480,7 +464,7 @@ int main() {
                 // 重新开始游戏
                 initializeGame(game_state);
                 game_state.game_started = true;  // 直接开始游戏
-                lcd_driver.fillScreen(BG_COLOR);
+                lcd_driver.fillScreenRGB666(BG_COLOR);
                 drawBorder(lcd_driver);
                 drawSnake(lcd_driver, game_state.snake);
                 drawFood(lcd_driver, game_state.food);
@@ -505,12 +489,12 @@ int main() {
                         int16_t pixel_x = game_state.snake.segments[i].x * GRID_SIZE;
                         int16_t pixel_y = game_state.snake.segments[i].y * GRID_SIZE;
                         
-                        // 检查是否在暂停文字区域内 (80, 220, 240, 260)
-                        if (pixel_x < 240 && pixel_x + GRID_SIZE > 80 && 
-                            pixel_y < 260 && pixel_y + GRID_SIZE > 220) {
+                        // 检查是否在暂停文字区域内 (70, 220, 250, 270)
+                        if (pixel_x < 250 && pixel_x + GRID_SIZE > 70 && 
+                            pixel_y < 270 && pixel_y + GRID_SIZE > 220) {
                             if (i == 0) {
                                 drawGridCell(lcd_driver, game_state.snake.segments[i].x, 
-                                           game_state.snake.segments[i].y, SNAKE_HEAD_COLOR_888);
+                                           game_state.snake.segments[i].y, SNAKE_HEAD_COLOR);
                             } else {
                                 drawGridCell(lcd_driver, game_state.snake.segments[i].x, 
                                            game_state.snake.segments[i].y, SNAKE_BODY_COLOR);
@@ -521,8 +505,8 @@ int main() {
                     // 检查食物是否在暂停文字区域内并重绘
                     int16_t food_pixel_x = game_state.food.x * GRID_SIZE;
                     int16_t food_pixel_y = game_state.food.y * GRID_SIZE;
-                    if (food_pixel_x < 240 && food_pixel_x + GRID_SIZE > 80 && 
-                        food_pixel_y < 260 && food_pixel_y + GRID_SIZE > 220) {
+                    if (food_pixel_x < 250 && food_pixel_x + GRID_SIZE > 70 && 
+                        food_pixel_y < 270 && food_pixel_y + GRID_SIZE > 220) {
                         drawFood(lcd_driver, game_state.food);
                     }
                 }
@@ -615,7 +599,7 @@ int main() {
                 // 游戏结束
                 game_state.game_over = true;
                 game_state.game_over_time = current_time;
-                drawGameOver(lcd_driver, game_state.score, 5);  // 显示完整的游戏结束画面
+                drawGameOver(lcd_driver, game_state.score);  // 显示完整的游戏结束画面
                 last_displayed_countdown = 5;  // 初始化倒计时显示为5秒
             } else {
                 // 检查是否吃到食物（通过比较分数变化）
@@ -628,7 +612,7 @@ int main() {
                 
                 // 绘制新的蛇头
                 drawGridCell(lcd_driver, game_state.snake.segments[0].x, 
-                           game_state.snake.segments[0].y, SNAKE_HEAD_COLOR_888);
+                           game_state.snake.segments[0].y, SNAKE_HEAD_COLOR);
                 
                 // 如果蛇身长度大于1，将原来的头部变成身体
                 if (game_state.snake.length > 1) {

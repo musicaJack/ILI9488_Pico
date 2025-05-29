@@ -156,6 +156,11 @@ public:
     void fillAreaRGB24(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color);
     
     /**
+     * @brief Fill rectangular area (RGB666 native)
+     */
+    void fillAreaRGB666(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color666);
+    
+    /**
      * @brief Fill entire screen (RGB565)
      */
     void fillScreen(uint16_t color);
@@ -164,6 +169,11 @@ public:
      * @brief Fill entire screen (RGB888)
      */
     void fillScreenRGB24(uint32_t color);
+    
+    /**
+     * @brief Fill entire screen (RGB666 native)
+     */
+    void fillScreenRGB666(uint32_t color666);
 
 public:
     // === Display Control ===

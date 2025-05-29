@@ -129,24 +129,33 @@ struct ILI9488Driver::Impl {
     
     // Convert RGB565 to RGB666 bytes
     void rgb565ToRGB666Bytes(uint16_t color, uint8_t* bytes) {
-        uint8_t r = (color >> 11) & 0x1F;
-        uint8_t g = (color >> 5) & 0x3F;
-        uint8_t b = color & 0x1F;
+        // 提取RGB565的各个分量
+        uint8_t r5 = (color >> 11) & 0x1F;  // 5位红色 (0-31)
+        uint8_t g6 = (color >> 5) & 0x3F;   // 6位绿色 (0-63)
+        uint8_t b5 = color & 0x1F;          // 5位蓝色 (0-31)
         
-        // Expand to 6 bits
-        r = (r << 1) | (r >> 4);
-        b = (b << 1) | (b >> 4);
+        // 将5位扩展到8位：复制高位到低位以获得更好的精度
+        uint8_t r8 = (r5 << 3) | (r5 >> 2);  // 5位→8位
+        uint8_t g8 = (g6 << 2) | (g6 >> 4);  // 6位→8位
+        uint8_t b8 = (b5 << 3) | (b5 >> 2);  // 5位→8位
         
-        bytes[0] = r << 2;
-        bytes[1] = g << 2;
-        bytes[2] = b << 2;
+        // ILI9488使用RGB666格式，每个分量6位，左对齐到8位
+        bytes[0] = r8 & 0xFC;  // 保留高6位，清除低2位
+        bytes[1] = g8 & 0xFC;  // 保留高6位，清除低2位
+        bytes[2] = b8 & 0xFC;  // 保留高6位，清除低2位
     }
     
     // Convert RGB888 to RGB666 bytes
     void rgb888ToRGB666Bytes(uint32_t color, uint8_t* bytes) {
-        bytes[0] = (color >> 16) & 0xFF;
-        bytes[1] = (color >> 8) & 0xFF;
-        bytes[2] = color & 0xFF;
+        // 提取RGB888的各个分量
+        uint8_t r8 = (color >> 16) & 0xFF;  // 8位红色
+        uint8_t g8 = (color >> 8) & 0xFF;   // 8位绿色
+        uint8_t b8 = color & 0xFF;          // 8位蓝色
+        
+        // ILI9488使用RGB666格式，每个分量6位，左对齐到8位
+        bytes[0] = r8 & 0xFC;  // 保留高6位，清除低2位
+        bytes[1] = g8 & 0xFC;  // 保留高6位，清除低2位
+        bytes[2] = b8 & 0xFC;  // 保留高6位，清除低2位
     }
     
     // Set drawing window
@@ -429,9 +438,33 @@ void ILI9488Driver::fillArea(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
     }
 }
 
+// Fill rectangular area (RGB666 native - no conversion needed)
+void ILI9488Driver::fillAreaRGB666(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color666) {
+    if (x0 > x1 || y0 > y1) return;
+    
+    pImpl_->setWindow(x0, y0, x1, y1);
+    
+    // 直接使用RGB666格式，无需转换
+    uint8_t rgb666_bytes[3];
+    rgb666_bytes[0] = (color666 >> 16) & 0xFC;  // 红色分量，保留高6位
+    rgb666_bytes[1] = (color666 >> 8) & 0xFC;   // 绿色分量，保留高6位
+    rgb666_bytes[2] = color666 & 0xFC;          // 蓝色分量，保留高6位
+    
+    uint32_t pixel_count = (x1 - x0 + 1) * (y1 - y0 + 1);
+    
+    for (uint32_t i = 0; i < pixel_count; ++i) {
+        pImpl_->writeDataBuffer(rgb666_bytes, 3);
+    }
+}
+
 // Fill entire screen (RGB565)
 void ILI9488Driver::fillScreen(uint16_t color) {
     fillArea(0, 0, pImpl_->display_width_ - 1, pImpl_->display_height_ - 1, color);
+}
+
+// Fill entire screen (RGB666 native)
+void ILI9488Driver::fillScreenRGB666(uint32_t color666) {
+    fillAreaRGB666(0, 0, pImpl_->display_width_ - 1, pImpl_->display_height_ - 1, color666);
 }
 
 // Set display rotation
