@@ -3,7 +3,7 @@
 #include <random>
 #include "pico/stdlib.h"
 #include "joystick.hpp"
-#include "joystick/joystick_config.hpp"
+#include "pin_config.hpp"
 #include "ili9488_driver.hpp"
 #include "ili9488_colors.hpp"
 #include "ili9488_font.hpp"
@@ -382,9 +382,7 @@ int main() {
     srand(to_ms_since_boot(get_absolute_time()));
     
     // 初始化ILI9488显示屏
-    ili9488::ILI9488Driver lcd_driver(
-        spi0, 20, 15, 17, 18, 19, 10, 40000000
-    );
+    ili9488::ILI9488Driver lcd_driver(ILI9488_GET_SPI_CONFIG());
     
     if (!lcd_driver.initialize()) {
         printf("LCD initialization failed!\n");
@@ -396,9 +394,7 @@ int main() {
     
     // 初始化摇杆
     Joystick joystick;
-    if (!joystick.begin(JOYSTICK_I2C_PORT, JOYSTICK_I2C_ADDR, 
-                       JOYSTICK_I2C_SDA_PIN, JOYSTICK_I2C_SCL_PIN, 
-                       JOYSTICK_I2C_SPEED)) {
+    if (!joystick.begin(JOYSTICK_GET_I2C_CONFIG())) {
         printf("Joystick initialization failed!\n");
         return -1;
     }

@@ -11,6 +11,7 @@
 #include <memory>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+#include "pin_config.hpp"
 
 namespace ili9488 {
 namespace hal {
@@ -20,17 +21,17 @@ namespace hal {
  */
 struct HardwareConfig {
     // SPI configuration
-    spi_inst_t* spi_inst = spi0;          ///< SPI instance (spi0 or spi1)
-    uint32_t spi_speed_hz = 40000000;     ///< SPI speed in Hz (40MHz default)
+    spi_inst_t* spi_inst = ILI9488_SPI_INST;          ///< SPI instance (spi0 or spi1)
+    uint32_t spi_speed_hz = ILI9488_SPI_SPEED_HZ;     ///< SPI speed in Hz (40MHz default)
     
     // GPIO pin assignments
-    uint8_t pin_sck = 18;                 ///< SPI clock pin
-    uint8_t pin_mosi = 19;                ///< SPI MOSI pin 
-    uint8_t pin_miso = 255;               ///< SPI MISO pin (not used, 255 = disabled)
-    uint8_t pin_cs = 17;                  ///< Chip select pin
-    uint8_t pin_dc = 20;                  ///< Data/Command control pin
-    uint8_t pin_rst = 21;                 ///< Reset pin
-    uint8_t pin_bl = 22;                  ///< Backlight PWM pin (255 = disabled)
+    uint8_t pin_sck = ILI9488_PIN_SCK;                ///< SPI clock pin
+    uint8_t pin_mosi = ILI9488_PIN_MOSI;              ///< SPI MOSI pin 
+    uint8_t pin_miso = ILI9488_PIN_MISO;              ///< SPI MISO pin (not used, 255 = disabled)
+    uint8_t pin_cs = ILI9488_PIN_CS;                  ///< Chip select pin
+    uint8_t pin_dc = ILI9488_PIN_DC;                  ///< Data/Command control pin
+    uint8_t pin_rst = ILI9488_PIN_RST;                ///< Reset pin
+    uint8_t pin_bl = ILI9488_PIN_BL;                  ///< Backlight PWM pin (255 = disabled)
 };
 
 /**

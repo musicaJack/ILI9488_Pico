@@ -14,13 +14,8 @@
 #include "ili9488_colors.hpp"
 #include "ili9488_font.hpp"
 
-// Hardware pin definitions
-constexpr uint8_t PIN_DC   = 20;
-constexpr uint8_t PIN_RST  = 15;
-constexpr uint8_t PIN_CS   = 17;
-constexpr uint8_t PIN_SCK  = 18;
-constexpr uint8_t PIN_MOSI = 19;
-constexpr uint8_t PIN_BL   = 10;
+// 统一引脚配置
+#include "pin_config.hpp"
 
 using namespace ili9488;
 using namespace ili9488_colors;
@@ -113,7 +108,7 @@ int main() {
     testFontSystem();
     
     // 2. 初始化显示器
-    ILI9488Driver driver(spi0, PIN_DC, PIN_RST, PIN_CS, PIN_SCK, PIN_MOSI, PIN_BL);
+    ILI9488Driver driver(ILI9488_GET_SPI_CONFIG());
     
     if (!driver.initialize()) {
         printf("Failed to initialize display!\n");

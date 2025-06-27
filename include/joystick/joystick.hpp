@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include "pin_config.hpp"
 
 #define JOYSTICK_ADDR                        0x63
 #define JOYSTICK_ADC_VALUE_12BITS_REG        0x00
@@ -36,8 +37,8 @@ public:
      * @param speed I2C clock
      * @return 1 success, 0 false
      */
-    bool begin(i2c_inst_t *i2c_port, uint8_t addr = JOYSTICK_ADDR, uint sda_pin = 21, uint scl_pin = 22,
-               uint32_t speed = 400000UL);
+    bool begin(i2c_inst_t *i2c_port, uint8_t addr = JOYSTICK_ADDR, uint sda_pin = JOYSTICK_PIN_SDA, uint scl_pin = JOYSTICK_PIN_SCL,
+               uint32_t speed = JOYSTICK_I2C_SPEED);
 
     /**
      * @brief Set Joystick I2C address

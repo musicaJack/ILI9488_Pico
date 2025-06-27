@@ -3,7 +3,6 @@
 #include <random>
 #include "pico/stdlib.h"
 #include "joystick.hpp"
-#include "joystick/joystick_config.hpp"
 #include "ili9488_driver.hpp"
 #include "ili9488_colors.hpp"
 #include "ili9488_font.hpp"
