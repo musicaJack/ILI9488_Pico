@@ -180,14 +180,20 @@ struct ILI9488Driver::Impl {
     
     // Initialize hardware
     bool initializeHardware() {
+        printf("  [ILI9488] 开始硬件初始化...\n");
+        
         // Initialize SPI
+        printf("  [ILI9488] 初始化SPI，速度: %lu Hz\n", (unsigned long)spi_speed_hz_);
         spi_init(spi_inst_, spi_speed_hz_);
         
         // Configure SPI pins
+        printf("  [ILI9488] 配置SPI引脚: SCK=%d, MOSI=%d\n", pin_sck_, pin_mosi_);
         gpio_set_function(pin_sck_, GPIO_FUNC_SPI);
         gpio_set_function(pin_mosi_, GPIO_FUNC_SPI);
         
         // Configure control pins
+        printf("  [ILI9488] 配置控制引脚: CS=%d, DC=%d, RST=%d, BL=%d\n", 
+               pin_cs_, pin_dc_, pin_rst_, pin_bl_);
         gpio_init(pin_cs_);
         gpio_init(pin_dc_);
         gpio_init(pin_rst_);
@@ -202,6 +208,7 @@ struct ILI9488Driver::Impl {
         
         // Configure backlight with PWM
         if (pin_bl_ != 255) {  // Valid pin
+            printf("  [ILI9488] 配置背光PWM: 引脚=%d\n", pin_bl_);
             gpio_set_function(pin_bl_, GPIO_FUNC_PWM);
             uint slice_num = pwm_gpio_to_slice_num(pin_bl_);
             uint channel = pwm_gpio_to_channel(pin_bl_);
@@ -212,50 +219,63 @@ struct ILI9488Driver::Impl {
             pwm_init(slice_num, &config, true);
             
             pwm_set_chan_level(slice_num, channel, 255);
+            printf("  [ILI9488] 背光PWM配置完成: slice=%d, channel=%d\n", slice_num, channel);
         }
         
+        printf("  [ILI9488] 硬件初始化完成\n");
         return true;
     }
     
     // Hardware reset
     void hardwareReset() {
+        printf("  [ILI9488] 执行硬件复位...\n");
         gpio_put(pin_rst_, 1);
         sleep_ms(10);
         gpio_put(pin_rst_, 0);
         sleep_ms(10);
         gpio_put(pin_rst_, 1);
         sleep_ms(150);
+        printf("  [ILI9488] 硬件复位完成\n");
     }
     
     // Initialization sequence
     void initializationSequence() {
+        printf("  [ILI9488] 开始初始化序列...\n");
+        
         // Software reset
+        printf("  [ILI9488] 软件复位...\n");
         writeCommand(Commands::SWRESET);
         sleep_ms(200);
         
         // Exit sleep mode
+        printf("  [ILI9488] 退出睡眠模式...\n");
         writeCommand(Commands::SLPOUT);
         sleep_ms(200);
         
         // Memory access control
+        printf("  [ILI9488] 设置内存访问控制...\n");
         writeCommand(Commands::MADCTL);
         writeData(0x48);
         
         // Pixel format (18-bit RGB666)
+        printf("  [ILI9488] 设置像素格式...\n");
         writeCommand(Commands::PIXFMT);
         writeData(0x66);
         
         // VCOM control
+        printf("  [ILI9488] 设置VCOM控制...\n");
         writeCommand(0xC5);
         writeData(0x00);
         writeData(0x36);
         writeData(0x80);
         
         // Power control
+        printf("  [ILI9488] 设置电源控制...\n");
         writeCommand(0xC2);
         writeData(0xA7);
         
         // Positive gamma correction
+        printf("  [ILI9488] 设置正伽马校正...\n");
         writeCommand(0xE0);
         const uint8_t gamma_pos[] = {
             0xF0, 0x01, 0x06, 0x0F, 0x12, 0x1D, 0x36, 0x54,
@@ -266,6 +286,7 @@ struct ILI9488Driver::Impl {
         }
         
         // Negative gamma correction
+        printf("  [ILI9488] 设置负伽马校正...\n");
         writeCommand(0xE1);
         const uint8_t gamma_neg[] = {
             0xF0, 0x01, 0x05, 0x0A, 0x0B, 0x07, 0x32, 0x44,
@@ -276,11 +297,15 @@ struct ILI9488Driver::Impl {
         }
         
         // Invert display
+        printf("  [ILI9488] 设置显示反转...\n");
         writeCommand(Commands::INVON);
         
         // Turn display on
+        printf("  [ILI9488] 开启显示...\n");
         writeCommand(Commands::DISPON);
         sleep_ms(50);
+        
+        printf("  [ILI9488] 初始化序列完成\n");
     }
     
     // Update display dimensions based on rotation
@@ -326,6 +351,7 @@ ILI9488Driver::~ILI9488Driver() = default;
 // Initialize the display
 bool ILI9488Driver::initialize() {
     if (pImpl_->is_initialized_) {
+        printf("ILI9488 already initialized\n");
         return true;
     }
     
@@ -338,8 +364,11 @@ bool ILI9488Driver::initialize() {
     
     pImpl_->hardwareReset();
     pImpl_->initializationSequence();
+    
+    printf("  [ILI9488] 初始化DMA...\n");
     pImpl_->initializeDMA();
     
+    printf("  [ILI9488] 设置旋转...\n");
     setRotation(pImpl_->current_rotation_);
     
     pImpl_->is_initialized_ = true;

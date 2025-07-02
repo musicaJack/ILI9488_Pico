@@ -32,6 +32,9 @@ struct HardwareConfig {
     uint8_t pin_dc = ILI9488_PIN_DC;                  ///< Data/Command control pin
     uint8_t pin_rst = ILI9488_PIN_RST;                ///< Reset pin
     uint8_t pin_bl = ILI9488_PIN_BL;                  ///< Backlight PWM pin (255 = disabled)
+    
+    // 默认构造函数
+    HardwareConfig() = default;
 };
 
 /**

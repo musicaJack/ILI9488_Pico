@@ -1,4 +1,3 @@
-
 #ifndef _MY_JOYSTICK_H_
 #define _MY_JOYSTICK_H_
 
@@ -9,7 +8,6 @@
 #include <stdio.h>
 #include "pin_config.hpp"
 
-#define JOYSTICK_ADDR                        0x63
 #define JOYSTICK_ADC_VALUE_12BITS_REG        0x00
 #define JOYSTICK_ADC_VALUE_8BITS_REG         0x10
 #define JOYSTICK_BUTTON_REG                  0x20
